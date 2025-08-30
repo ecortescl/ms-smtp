@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: ms-smtp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DATABASE:-ms_smtp}
+      POSTGRES_USER: ${PG_USER:-ms}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-ms}
+    ports:
+      - "${PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ms_smtp:
+    image: node:20-alpine
+    container_name: ms-smtp-service
+    working_dir: /app
+    restart: unless-stopped
+    command: sh -c "npm ci && npm run start"
+    volumes:
+      - ./:/app
+    environment:
+      PORT: ${PORT:-3000}
+      API_TOKEN: ${API_TOKEN:-change-me}
+      SMTP_HOST: ${SMTP_HOST:-smtp}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM_DEFAULT: ${SMTP_FROM_DEFAULT:-"Servicio <no-reply@example.com>"}
+      LOG_DIR: ${LOG_DIR:-./data/logs}
+      LOG_FILE_NAME: ${LOG_FILE_NAME:-email.log}
+      TEMPLATES_DIR: ${TEMPLATES_DIR:-./data/templates}
+      DB_PROVIDER: ${DB_PROVIDER:-postgres}
+      PG_HOST: ${PG_HOST:-db}
+      PG_PORT: ${PG_PORT:-5432}
+      PG_USER: ${PG_USER:-ms}
+      PG_PASSWORD: ${PG_PASSWORD:-ms}
+      PG_DATABASE: ${PG_DATABASE:-ms_smtp}
+      PG_SSL: ${PG_SSL:-false}
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
