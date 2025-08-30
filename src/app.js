@@ -9,11 +9,12 @@ import { authMiddleware } from './middleware/auth.js';
 import emailRouter from './routes/email.js';
 import { setupSwagger } from './swagger.js';
 import logsRouter from './routes/logs.js';
+import templatesRouter from './routes/templates.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const INITIAL_PORT = Number(process.env.PORT) || 3000;
 
 // Basic security and utils
 app.use(helmet());
@@ -46,6 +47,7 @@ app.use('/api', authMiddleware);
 // Routes
 app.use('/api/v1', emailRouter);
 app.use('/api/v1', logsRouter);
+app.use('/api/v1', templatesRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -59,6 +61,20 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`SMTP microservice listening on port ${PORT}`);
-});
+function startServer(port, retries = 10) {
+  const server = app.listen(port, () => {
+    console.log(`SMTP microservice listening on port ${port}`);
+  });
+  server.on('error', (err) => {
+    if (err && err.code === 'EADDRINUSE' && retries > 0) {
+      const nextPort = port + 1;
+      console.warn(`Port ${port} in use. Trying ${nextPort}... (${retries - 1} retries left)`);
+      setTimeout(() => startServer(nextPort, retries - 1), 100);
+    } else {
+      console.error('Failed to start server:', err);
+      process.exit(1);
+    }
+  });
+}
+
+startServer(INITIAL_PORT);

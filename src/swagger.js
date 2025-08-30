@@ -102,6 +102,52 @@ export function setupSwagger(app) {
             items: { type: 'array', items: { $ref: '#/components/schemas/LogEntry' } },
           },
         },
+        Template: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            subject: { type: 'string' },
+            html: { type: 'string' },
+            defaults: { type: 'object', additionalProperties: true },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        TemplateCreate: {
+          type: 'object',
+          required: ['name', 'subject', 'html'],
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            subject: { type: 'string' },
+            html: { type: 'string' },
+            defaults: { type: 'object', additionalProperties: true },
+          },
+        },
+        TemplateUpdate: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            subject: { type: 'string' },
+            html: { type: 'string' },
+            defaults: { type: 'object', additionalProperties: true },
+          },
+        },
+        SendTemplateRequest: {
+          type: 'object',
+          required: ['templateId'],
+          properties: {
+            templateId: { type: 'string' },
+            params: { type: 'object', additionalProperties: true },
+            from: { type: 'string', format: 'email' },
+            to: { oneOf: [{ type: 'string', format: 'email' }, { type: 'array', items: { type: 'string', format: 'email' } }] },
+            cc: { oneOf: [{ type: 'string', format: 'email' }, { type: 'array', items: { type: 'string', format: 'email' } }] },
+            bcc: { oneOf: [{ type: 'string', format: 'email' }, { type: 'array', items: { type: 'string', format: 'email' } }] },
+            replyTo: { type: 'string', format: 'email' },
+            attachments: { type: 'array', items: { $ref: '#/components/schemas/Attachment' } },
+          },
+        },
       },
     },
     security: [{ ApiTokenAuth: [] }],
@@ -200,6 +246,89 @@ export function setupSwagger(app) {
             '201': { description: 'Creado', content: { 'application/json': { schema: { $ref: '#/components/schemas/LogEntry' } } } },
             '400': { description: 'Error de validación' },
             '401': { description: 'No autorizado' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+      },
+      '/api/v1/templates': {
+        get: {
+          tags: ['Templates'],
+          summary: 'Listar plantillas',
+          responses: {
+            '200': { description: 'OK', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Template' } } } } },
+            '401': { description: 'No autorizado' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+        post: {
+          tags: ['Templates'],
+          summary: 'Crear plantilla',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/TemplateCreate' } } },
+          },
+          responses: {
+            '201': { description: 'Creado', content: { 'application/json': { schema: { $ref: '#/components/schemas/Template' } } } },
+            '400': { description: 'Error de validación' },
+            '401': { description: 'No autorizado' },
+            '409': { description: 'Conflicto: ID ya existe' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+      },
+      '/api/v1/templates/{id}': {
+        get: {
+          tags: ['Templates'],
+          summary: 'Obtener plantilla por ID',
+          parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+          responses: {
+            '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Template' } } } },
+            '401': { description: 'No autorizado' },
+            '404': { description: 'No encontrada' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+        put: {
+          tags: ['Templates'],
+          summary: 'Actualizar plantilla',
+          parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/TemplateUpdate' } } },
+          },
+          responses: {
+            '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Template' } } } },
+            '400': { description: 'Error de validación' },
+            '401': { description: 'No autorizado' },
+            '404': { description: 'No encontrada' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+        delete: {
+          tags: ['Templates'],
+          summary: 'Eliminar plantilla',
+          parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+          responses: {
+            '204': { description: 'Eliminada' },
+            '401': { description: 'No autorizado' },
+            '404': { description: 'No encontrada' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+      },
+      '/api/v1/send-template': {
+        post: {
+          tags: ['Templates'],
+          summary: 'Enviar correo usando una plantilla',
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/SendTemplateRequest' } } },
+          },
+          responses: {
+            '202': { description: 'Aceptado', content: { 'application/json': { schema: { $ref: '#/components/schemas/SendEmailResponse' } } } },
+            '400': { description: 'Error de validación' },
+            '401': { description: 'No autorizado' },
+            '502': { description: 'Error SMTP' },
           },
           security: [{ ApiTokenAuth: [] }],
         },
