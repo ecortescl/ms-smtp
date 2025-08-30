@@ -11,22 +11,17 @@ Microservicio para enviar correos vía API usando SMTP. Incluye autenticación p
 
 ```mermaid
 flowchart LR
-  Client[Cliente / Integración] -- HTTP + x-api-token --> API[ms-smtp API (Express)]
-  subgraph API
-    direction TB
-    RouterEmail[Routes Email]
-    RouterLogs[Routes Logs]
-    RouterTemplates[Routes Templates]
-    Auth[Auth Middleware]
-    Swagger[Swagger UI]
-  end
-  API --> SMTP[Servidor SMTP]
-  API -->|DB_PROVIDER=filesystem| FS[(Filesystem\nJSON/JSONL)]
-  API -->|DB_PROVIDER=postgres| PG[(Postgres)]
+  Client[Cliente/Integración]
+  API[ms-smtp API]
+  SMTP[Servidor SMTP]
+  FS[(Filesystem)]
+  PG[(Postgres)]
+  Client -->|HTTP + x-api-token| API
+  API --> SMTP
+  API -->|DB_PROVIDER=filesystem| FS
+  API -->|DB_PROVIDER=postgres| PG
 
-  classDef svc fill:#f5f5f5,stroke:#bbb,stroke-width:1px;
   classDef db fill:#e7f5ff,stroke:#6aa1ff,stroke-width:1px;
-  class API,RouterEmail,RouterLogs,RouterTemplates,Auth,Swagger svc;
   class PG db;
 ```
 
