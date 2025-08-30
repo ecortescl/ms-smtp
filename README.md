@@ -36,11 +36,11 @@ Opciones avanzadas en `.env.example`.
   ```bash
   npm start
   ```
-
-La app escuchará en `http://localhost:3000` (o el puerto configurado).
+  - La app escuchará en `http://localhost:3000` (o el puerto configurado).
+  - La app se iniciará en el primer puerto disponible comenzando en `PORT` (por defecto 3000). Revisa la consola para ver el puerto final.
 
 ## Documentación Swagger
-- Abre `http://localhost:3000/docs`.
+- Abre `http://localhost:<PUERTO>/docs` (ver consola para el puerto en uso).
 - Agrega el header de seguridad `x-api-token` con el valor de `API_TOKEN` para probar los endpoints.
 
 ## Endpoint
