@@ -1,0 +1,62 @@
+import express from 'express';
+import dotenv from 'dotenv';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+
+import { authMiddleware } from './middleware/auth.js';
+import emailRouter from './routes/email.js';
+import { setupSwagger } from './swagger.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Basic security and utils
+app.use(helmet());
+app.use(cors());
+app.use(express.json({ limit: '1mb' }));
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
+
+// Basic rate limiter (customize via env if desired)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
+
+// Swagger (public, documents auth requirement)
+setupSwagger(app);
+
+// Protect API routes with token auth
+app.use('/api', authMiddleware);
+
+// Routes
+app.use('/api/v1', emailRouter);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// Error handler
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+});
+
+app.listen(PORT, () => {
+  console.log(`SMTP microservice listening on port ${PORT}`);
+});
