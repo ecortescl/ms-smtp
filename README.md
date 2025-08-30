@@ -97,6 +97,34 @@ curl -X POST http://localhost:3000/api/v1/send-email \
   }'
 ```
 
+## Logs de envíos
+
+- GET `/api/v1/logs` (con `x-api-token`):
+  - Query params opcionales: `status`, `to`, `from`, `contains`, `start`, `end`, `limit`, `offset`.
+  - Ejemplo:
+    ```bash
+    curl 'http://localhost:3001/api/v1/logs?status=success,failed&limit=50' \
+      -H 'x-api-token: TU_TOKEN'
+    ```
+  - Respuesta: objeto con `total`, `offset`, `limit`, `items` (cada item es un evento con `status`, `timestamp`, `to`, `from`, `subject`, etc.)
+
+- POST `/api/v1/logs` (con `x-api-token`):
+  - Permite registrar manualmente eventos como `canceled` o `spam` cuando provienen de otro sistema/feedback.
+  - Body:
+    ```json
+    {
+      "status": "canceled",
+      "to": "user@example.com",
+      "subject": "Campaña X",
+      "meta": { "reason": "usuario solicitó cancelación" }
+    }
+    ```
+
+### Notas
+- El servicio registra automáticamente `success` y `failed` en el endpoint de envío.
+- Estados como `canceled` o `spam` usualmente provienen de feedback externo (proveedor, webhook, sistema anti-spam). Puedes registrarlos vía `POST /api/v1/logs`.
+- Los logs se almacenan en formato JSONL en `LOG_DIR/LOG_FILE_NAME` (ver `.env.example`).
+
 ## Salud del servicio
 - `GET /health` -> `{ status: 'ok', uptime: <segundos> }`
 

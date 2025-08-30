@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Joi from 'joi';
 import { sendMail } from '../services/mailer.js';
+import { logEmailEvent } from '../services/logger.js';
 
 const router = Router();
 
@@ -32,8 +33,31 @@ router.post('/send-email', async (req, res) => {
 
   try {
     const result = await sendMail(value);
+    // Log success
+    await logEmailEvent({
+      status: 'success',
+      to: value.to,
+      from: value.from,
+      subject: value.subject,
+      provider: 'smtp',
+      response: result.response,
+      meta: { accepted: result.accepted, rejected: result.rejected, messageId: result.messageId },
+    });
     return res.status(202).json({ status: 'queued', result });
   } catch (err) {
+    // Log failure
+    try {
+      await logEmailEvent({
+        status: 'failed',
+        to: value.to,
+        from: value.from,
+        subject: value.subject,
+        provider: 'smtp',
+        error: err.message,
+      });
+    } catch (_) {
+      // ignore logging failure
+    }
     return res.status(502).json({ error: 'SMTPError', message: err.message });
   }
 });

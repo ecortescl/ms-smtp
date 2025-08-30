@@ -78,6 +78,30 @@ export function setupSwagger(app) {
             },
           },
         },
+        LogEntry: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            timestamp: { type: 'string', format: 'date-time' },
+            status: { type: 'string', enum: ['success', 'failed', 'canceled', 'spam', 'queued', 'other'] },
+            to: { oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }] },
+            from: { type: 'string' },
+            subject: { type: 'string' },
+            provider: { type: 'string' },
+            response: { type: 'string' },
+            error: { type: 'string' },
+            meta: { type: 'object', additionalProperties: true },
+          },
+        },
+        LogsQueryResponse: {
+          type: 'object',
+          properties: {
+            total: { type: 'integer' },
+            offset: { type: 'integer' },
+            limit: { type: 'integer' },
+            items: { type: 'array', items: { $ref: '#/components/schemas/LogEntry' } },
+          },
+        },
       },
     },
     security: [{ ApiTokenAuth: [] }],
@@ -107,6 +131,46 @@ export function setupSwagger(app) {
             '400': { description: 'Error de validación' },
             '401': { description: 'No autorizado' },
             '502': { description: 'Error SMTP' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+      },
+      '/api/v1/logs': {
+        get: {
+          tags: ['Logs'],
+          summary: 'Consultar logs de envíos',
+          parameters: [
+            { in: 'query', name: 'status', schema: { type: 'string' }, description: 'success,failed,canceled,spam,queued,other o lista separada por comas' },
+            { in: 'query', name: 'to', schema: { type: 'string' } },
+            { in: 'query', name: 'from', schema: { type: 'string' } },
+            { in: 'query', name: 'contains', schema: { type: 'string' }, description: 'Busca en subject/response' },
+            { in: 'query', name: 'start', schema: { type: 'string', format: 'date-time' } },
+            { in: 'query', name: 'end', schema: { type: 'string', format: 'date-time' } },
+            { in: 'query', name: 'limit', schema: { type: 'integer', default: 100 } },
+            { in: 'query', name: 'offset', schema: { type: 'integer', default: 0 } },
+          ],
+          responses: {
+            '200': {
+              description: 'OK',
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/LogsQueryResponse' } } },
+            },
+            '401': { description: 'No autorizado' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+        post: {
+          tags: ['Logs'],
+          summary: 'Agregar una entrada de log manualmente',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/LogEntry' } },
+            },
+          },
+          responses: {
+            '201': { description: 'Creado', content: { 'application/json': { schema: { $ref: '#/components/schemas/LogEntry' } } } },
+            '400': { description: 'Error de validación' },
+            '401': { description: 'No autorizado' },
           },
           security: [{ ApiTokenAuth: [] }],
         },

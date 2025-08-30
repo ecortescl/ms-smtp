@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import { authMiddleware } from './middleware/auth.js';
 import emailRouter from './routes/email.js';
 import { setupSwagger } from './swagger.js';
+import logsRouter from './routes/logs.js';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.use('/api', authMiddleware);
 
 // Routes
 app.use('/api/v1', emailRouter);
+app.use('/api/v1', logsRouter);
 
 // 404 handler
 app.use((req, res) => {
