@@ -125,6 +125,19 @@ curl -X POST http://localhost:3000/api/v1/send-email \
 - Estados como `canceled` o `spam` usualmente provienen de feedback externo (proveedor, webhook, sistema anti-spam). Puedes registrarlos vía `POST /api/v1/logs`.
 - Los logs se almacenan en formato JSONL en `LOG_DIR/LOG_FILE_NAME` (ver `.env.example`).
 
+## Verificación SMTP
+
+- GET `/api/v1/smtp-check` (con `x-api-token`): verifica conectividad/credenciales con `transporter.verify()`.
+  ```bash
+  curl http://localhost:3001/api/v1/smtp-check \
+    -H 'x-api-token: TU_TOKEN'
+  ```
+  Respuesta 200:
+  ```json
+  { "ok": true, "verified": true, "host": "smtp.example.com", "port": 587, "secure": false }
+  ```
+  Si falla, devuelve 502 con `{ ok: false, error }`.
+
 ## Salud del servicio
 - `GET /health` -> `{ status: 'ok', uptime: <segundos> }`
 

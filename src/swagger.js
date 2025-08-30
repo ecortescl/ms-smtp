@@ -135,6 +135,35 @@ export function setupSwagger(app) {
           security: [{ ApiTokenAuth: [] }],
         },
       },
+      '/api/v1/smtp-check': {
+        get: {
+          tags: ['Email'],
+          summary: 'Verificar conectividad SMTP',
+          description: 'Ejecuta transporter.verify() para comprobar conexión/credenciales SMTP',
+          responses: {
+            '200': {
+              description: 'Conexión SMTP verificada',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      ok: { type: 'boolean', example: true },
+                      verified: { type: 'boolean' },
+                      host: { type: 'string' },
+                      port: { type: 'integer' },
+                      secure: { type: 'boolean' },
+                    },
+                  },
+                },
+              },
+            },
+            '401': { description: 'No autorizado' },
+            '502': { description: 'Error al verificar SMTP' },
+          },
+          security: [{ ApiTokenAuth: [] }],
+        },
+      },
       '/api/v1/logs': {
         get: {
           tags: ['Logs'],

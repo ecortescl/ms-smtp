@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Joi from 'joi';
-import { sendMail } from '../services/mailer.js';
+import { sendMail, getTransporter } from '../services/mailer.js';
 import { logEmailEvent } from '../services/logger.js';
 
 const router = Router();
@@ -59,6 +59,23 @@ router.post('/send-email', async (req, res) => {
       // ignore logging failure
     }
     return res.status(502).json({ error: 'SMTPError', message: err.message });
+  }
+});
+
+router.get('/smtp-check', async (_req, res) => {
+  try {
+    const transporter = getTransporter();
+    const verified = await transporter.verify();
+    const conf = transporter.options || {};
+    return res.status(200).json({
+      ok: true,
+      verified: Boolean(verified),
+      host: conf.host,
+      port: conf.port,
+      secure: conf.secure,
+    });
+  } catch (err) {
+    return res.status(502).json({ ok: false, error: err.message });
   }
 });
 
