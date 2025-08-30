@@ -10,6 +10,7 @@ import emailRouter from './routes/email.js';
 import { setupSwagger } from './swagger.js';
 import logsRouter from './routes/logs.js';
 import templatesRouter from './routes/templates.js';
+import { initDb, pgEnabled } from './services/db.js';
 
 dotenv.config();
 
@@ -75,6 +76,17 @@ function startServer(port, retries = 10) {
       process.exit(1);
     }
   });
+}
+
+// Initialize optional Postgres and fallback to filesystem if it fails
+if (pgEnabled()) {
+  try {
+    await initDb();
+    console.log('Postgres backend enabled');
+  } catch (err) {
+    console.warn('Postgres init failed, falling back to filesystem:', err?.message || err);
+    process.env.DB_PROVIDER = 'filesystem';
+  }
 }
 
 startServer(INITIAL_PORT);

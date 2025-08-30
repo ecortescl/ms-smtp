@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { getPool, pgEnabled } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,9 +22,6 @@ async function ensureDir(dir) {
 }
 
 export async function logEmailEvent(event) {
-  const dir = getLogDir();
-  await ensureDir(dir);
-
   const entry = {
     id: event.id || crypto.randomUUID(),
     timestamp: new Date().toISOString(),
@@ -37,12 +35,86 @@ export async function logEmailEvent(event) {
     meta: event.meta || undefined,
   };
 
+  if (pgEnabled()) {
+    const pool = getPool();
+    await pool.query(
+      `INSERT INTO email_logs (id, timestamp, status, recipient, sender, subject, provider, response, error, meta)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb)`,
+      [
+        entry.id,
+        entry.timestamp,
+        entry.status || null,
+        entry.to || null,
+        entry.from || null,
+        entry.subject || null,
+        entry.provider || null,
+        entry.response || null,
+        entry.error ? JSON.stringify(entry.error) : null,
+        entry.meta ? JSON.stringify(entry.meta) : null,
+      ]
+    );
+    return entry;
+  }
+
+  const dir = getLogDir();
+  await ensureDir(dir);
   const line = JSON.stringify(entry) + '\n';
   await fs.appendFile(getLogFilePath(), line, 'utf8');
   return entry;
 }
 
 export async function queryLogs({ status, to, from, contains, start, end, limit = 100, offset = 0 } = {}) {
+  if (pgEnabled()) {
+    const pool = getPool();
+    const where = [];
+    const params = [];
+    let p = 1;
+    if (status) {
+      const statuses = Array.isArray(status) ? status : String(status).split(',');
+      where.push(`status = ANY($${p++})`);
+      params.push(statuses);
+    }
+    if (to) {
+      where.push(`LOWER(recipient) LIKE $${p++}`);
+      params.push(`%${String(to).toLowerCase()}%`);
+    }
+    if (from) {
+      where.push(`LOWER(sender) LIKE $${p++}`);
+      params.push(`%${String(from).toLowerCase()}%`);
+    }
+    if (contains) {
+      where.push(`(LOWER(subject) LIKE $${p} OR LOWER(response) LIKE $${p}))`);
+      params.push(`%${String(contains).toLowerCase()}%`);
+      p++;
+    }
+    if (start) {
+      where.push(`timestamp >= $${p++}`);
+      params.push(new Date(start));
+    }
+    if (end) {
+      where.push(`timestamp <= $${p++}`);
+      params.push(new Date(end));
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const limitNum = Number(limit) || 100;
+    const offsetNum = Math.max(0, Number(offset) || 0);
+
+    const countSql = `SELECT COUNT(*) AS cnt FROM email_logs ${whereSql}`;
+    const { rows: countRows } = await pool.query(countSql, params);
+    const total = Number(countRows[0]?.cnt || 0);
+
+    const listSql = `
+      SELECT id, timestamp, status, recipient AS to, sender AS from, subject, provider, response, error, meta
+      FROM email_logs
+      ${whereSql}
+      ORDER BY timestamp DESC
+      LIMIT ${limitNum} OFFSET ${offsetNum}
+    `;
+    const { rows } = await pool.query(listSql, params);
+    return { total, offset: offsetNum, limit: limitNum, items: rows };
+  }
+
   const filePath = getLogFilePath();
   try {
     const data = await fs.readFile(filePath, 'utf8');

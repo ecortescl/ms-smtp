@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import Handlebars from 'handlebars';
 import crypto from 'crypto';
+import { getPool, pgEnabled } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,14 @@ function fileFor(id) {
 }
 
 export async function listTemplates() {
+  if (pgEnabled()) {
+    const pool = getPool();
+    const { rows } = await pool.query(
+      `SELECT id, name, updated_at FROM email_templates ORDER BY id ASC`
+    );
+    return rows.map((r) => ({ id: r.id, name: r.name, updatedAt: r.updated_at }));
+  }
+
   const dir = getTemplatesDir();
   try {
     await ensureDir(dir);
@@ -44,20 +53,63 @@ export async function listTemplates() {
 }
 
 export async function getTemplate(id) {
+  if (pgEnabled()) {
+    const pool = getPool();
+    const { rows } = await pool.query(`SELECT * FROM email_templates WHERE id = $1`, [sanitizeId(id)]);
+    if (rows.length === 0) throw Object.assign(new Error('Template not found'), { code: 'ENOENT' });
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      subject: r.subject,
+      html: r.html,
+      defaults: r.defaults || {},
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
   const file = fileFor(id);
   const raw = await fs.readFile(file, 'utf8');
   return JSON.parse(raw);
 }
 
 export async function deleteTemplate(id) {
+  if (pgEnabled()) {
+    const pool = getPool();
+    await pool.query(`DELETE FROM email_templates WHERE id = $1`, [sanitizeId(id)]);
+    return;
+  }
   const file = fileFor(id);
   await fs.unlink(file);
 }
 
 export async function createTemplate({ id, name, subject, html, defaults }) {
+  const templateId = sanitizeId(id || crypto.randomUUID());
+  if (pgEnabled()) {
+    const pool = getPool();
+    // Check conflict
+    const { rows: exists } = await pool.query(`SELECT 1 FROM email_templates WHERE id = $1`, [templateId]);
+    if (exists.length) throw new Error(`Template '${templateId}' ya existe`);
+    const { rows } = await pool.query(
+      `INSERT INTO email_templates (id, name, subject, html, defaults)
+       VALUES ($1, $2, $3, $4, $5::jsonb)
+       RETURNING id, name, subject, html, defaults, created_at, updated_at`,
+      [templateId, name || templateId, String(subject || ''), String(html || ''), JSON.stringify(defaults || {})]
+    );
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      subject: r.subject,
+      html: r.html,
+      defaults: r.defaults || {},
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
   const dir = getTemplatesDir();
   await ensureDir(dir);
-  const templateId = sanitizeId(id || crypto.randomUUID());
   const file = fileFor(templateId);
 
   let exists = false;
@@ -96,6 +148,37 @@ export async function renderTemplate(id, params = {}) {
 }
 
 export async function updateTemplate(id, payload) {
+  if (pgEnabled()) {
+    const pool = getPool();
+    const current = await getTemplate(id);
+    const next = {
+      ...current,
+      ...payload,
+    };
+    const { rows } = await pool.query(
+      `UPDATE email_templates SET name = $2, subject = $3, html = $4, defaults = $5::jsonb, updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name, subject, html, defaults, created_at, updated_at`,
+      [
+        sanitizeId(id),
+        next.name || sanitizeId(id),
+        String(next.subject || ''),
+        String(next.html || ''),
+        JSON.stringify(next.defaults || {}),
+      ]
+    );
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      subject: r.subject,
+      html: r.html,
+      defaults: r.defaults || {},
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+  }
+
   const file = fileFor(id);
   const current = await getTemplate(id);
   const next = {
