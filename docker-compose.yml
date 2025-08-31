@@ -29,13 +29,17 @@ services:
       - ./:/app
     environment:
       PORT: ${PORT:-3000}
-      API_TOKEN: ${API_TOKEN:-change-me}
-      SMTP_HOST: ${SMTP_HOST:-smtp}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_SECURE: ${SMTP_SECURE:-false}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM_DEFAULT: ${SMTP_FROM_DEFAULT:-"Servicio <no-reply@example.com>"}
+      API_TOKEN: ${API_TOKEN}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM_DEFAULT: ${SMTP_FROM_DEFAULT}
+      SMTP_POOL: ${SMTP_POOL:-true}
+      SMTP_MAX_CONNECTIONS: ${SMTP_MAX_CONNECTIONS:-5}
+      SMTP_MAX_MESSAGES: ${SMTP_MAX_MESSAGES:-100}
+      SMTP_TLS_REJECT_UNAUTH: ${SMTP_TLS_REJECT_UNAUTH:-true}
       LOG_DIR: ${LOG_DIR:-./data/logs}
       LOG_FILE_NAME: ${LOG_FILE_NAME:-email.log}
       TEMPLATES_DIR: ${TEMPLATES_DIR:-./data/templates}
@@ -47,20 +51,11 @@ services:
       PG_PASSWORD: ${PG_PASSWORD:-ms}
       PG_DATABASE: ${PG_DATABASE:-ms_smtp}
       PG_SSL: ${PG_SSL:-false}
-    # No exponemos el puerto de la app al host; sólo Nginx expone 8080
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
     depends_on:
       db:
         condition: service_healthy
-
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: ms-smtp-nginx
-    depends_on:
-      - ms_smtp
-    ports:
-      - "8080:80"
-    volumes:
-      - ./deploy/nginx.compose.conf:/etc/nginx/nginx.conf:ro
 
 volumes:
   pgdata:
