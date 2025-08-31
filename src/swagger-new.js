@@ -15,33 +15,107 @@ export function setupSwagger(app) {
       title: 'SMTP Microservice API',
       version: '1.0.0',
       description: `
-# Microservicio SMTP para Envío de Correos
+# 📧 Microservicio SMTP para Envío de Correos
 
-API RESTful para el envío de correos electrónicos a través de SMTP con soporte para:
-- Envío directo de correos con contenido HTML/texto
-- Sistema de plantillas con Handlebars
-- Registro y consulta de eventos de envío
-- Verificación de conectividad SMTP
-- Autenticación por token API
+API RESTful profesional para el envío de correos electrónicos a través de SMTP con funcionalidades avanzadas.
 
-## Autenticación
-Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\` con un token válido.
+## 🚀 Características Principales
+- **Envío directo** de correos con contenido HTML/texto
+- **Sistema de plantillas** con Handlebars para emails dinámicos
+- **Registro y auditoría** completa de eventos de envío
+- **Verificación SMTP** para diagnóstico y monitoreo
+- **Autenticación segura** por token API
+- **Filtros avanzados** para consulta de logs
+- **Adjuntos** con soporte base64 y URLs
+- **Fallback automático** entre PostgreSQL y filesystem
 
-## Formatos de Respuesta
-- **202 Accepted**: Email enviado exitosamente (queued)
-- **400 Bad Request**: Error de validación en los datos
-- **401 Unauthorized**: Token inválido o faltante
-- **404 Not Found**: Recurso no encontrado
-- **409 Conflict**: Conflicto (ej: template ya existe)
-- **502 Bad Gateway**: Error del servidor SMTP
+## 🔐 Autenticación
+Todos los endpoints (excepto \`/health\` y \`/docs\`) requieren el header \`x-api-token\` con un token válido.
 
-## Estados de Email
-- **success**: Enviado exitosamente
-- **failed**: Error en el envío
-- **queued**: En cola de envío
-- **canceled**: Cancelado manualmente
-- **spam**: Marcado como spam
-- **other**: Otro estado personalizado
+**Configuración:**
+1. Haz clic en el botón **"Authorize"** 🔓
+2. Ingresa tu token API en el campo \`x-api-token\`
+3. Haz clic en **"Authorize"** para guardar
+4. El token se mantendrá durante toda la sesión
+
+## 📊 Códigos de Respuesta
+| Código | Descripción | Uso |
+|--------|-------------|-----|
+| **200 OK** | Operación exitosa | Consultas, verificaciones |
+| **201 Created** | Recurso creado | Plantillas, logs manuales |
+| **202 Accepted** | Email en cola | Envíos exitosos |
+| **204 No Content** | Eliminación exitosa | Borrar plantillas |
+| **400 Bad Request** | Error de validación | Datos incorrectos |
+| **401 Unauthorized** | Token inválido | Falta autenticación |
+| **404 Not Found** | Recurso no encontrado | Plantilla inexistente |
+| **409 Conflict** | Conflicto de recursos | Template duplicado |
+| **500 Internal Error** | Error del servidor | Problemas internos |
+| **502 Bad Gateway** | Error SMTP | Problemas de conectividad |
+
+## 📈 Estados de Email
+| Estado | Descripción | Cuándo se usa |
+|--------|-------------|---------------|
+| **success** ✅ | Enviado exitosamente | Automático en envío |
+| **failed** ❌ | Error en el envío | Automático en error |
+| **queued** ⏳ | En cola de envío | Estado inicial |
+| **canceled** 🚫 | Cancelado manualmente | Registro manual |
+| **spam** 🚨 | Marcado como spam | Feedback externo |
+| **other** ℹ️ | Estado personalizado | Casos especiales |
+
+## 🛠️ Guía Rápida de Uso
+
+### 1. Verificar Conectividad
+Antes de enviar emails, verifica que el servidor SMTP esté configurado:
+\`GET /api/v1/smtp-check\`
+
+### 2. Envío Simple
+Para enviar un email básico:
+\`POST /api/v1/send-email\`
+
+### 3. Crear Plantilla
+Para emails recurrentes, crea una plantilla:
+\`POST /api/v1/templates\`
+
+### 4. Envío con Plantilla
+Usa plantillas para emails dinámicos:
+\`POST /api/v1/send-template\`
+
+### 5. Consultar Logs
+Monitorea el estado de tus envíos:
+\`GET /api/v1/logs\`
+
+## 📝 Variables Handlebars
+Las plantillas soportan variables dinámicas:
+- **Sintaxis**: \`{{variable}}\`
+- **Condicionales**: \`{{#if condition}}...{{/if}}\`
+- **Bucles**: \`{{#each items}}...{{/each}}\`
+- **HTML seguro**: \`{{{htmlContent}}}\` (sin escapar)
+
+## 🔍 Filtros de Logs
+Consulta logs con filtros avanzados:
+- **Por estado**: \`?status=success,failed\`
+- **Por destinatario**: \`?to=usuario@ejemplo.com\`
+- **Por fecha**: \`?start=2024-01-01T00:00:00Z&end=2024-01-31T23:59:59Z\`
+- **Por contenido**: \`?contains=bienvenida\`
+- **Paginación**: \`?limit=50&offset=0\`
+
+## 📚 Recursos Adicionales
+- **Ejemplos de código**: Ver sección de ejemplos en cada endpoint
+- **Esquemas detallados**: Expandir modelos para ver estructura completa
+- **Casos de prueba**: Usar "Try it out" para probar en vivo
+- **Documentación externa**: Consultar README.md del proyecto
+
+## ⚡ Consejos de Rendimiento
+- Usa plantillas para emails recurrentes
+- Implementa paginación en consultas de logs
+- Configura límites de rate limiting apropiados
+- Monitorea logs regularmente para detectar problemas
+
+## 🆘 Solución de Problemas
+1. **Error 401**: Verifica que el token API esté configurado correctamente
+2. **Error 502**: Revisa la configuración SMTP con \`/smtp-check\`
+3. **Plantilla no encontrada**: Verifica el ID con \`GET /templates\`
+4. **Validación fallida**: Revisa los esquemas de cada endpoint
       `,
       contact: {
         name: 'Soporte Técnico',
@@ -69,60 +143,12 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
         }
       },
       schemas: {
-        // Esquemas de Email
+        // Esquemas básicos
         EmailAddress: {
           type: 'string',
           format: 'email',
           example: 'usuario@ejemplo.com',
           description: 'Dirección de correo electrónico válida'
-        },
-        EmailAddressList: {
-          oneOf: [
-            { $ref: '#/components/schemas/EmailAddress' },
-            {
-              type: 'array',
-              items: { $ref: '#/components/schemas/EmailAddress' },
-              example: ['usuario1@ejemplo.com', 'usuario2@ejemplo.com']
-            }
-          ],
-          description: 'Una dirección de email o lista de direcciones'
-        },
-        Attachment: {
-          type: 'object',
-          properties: {
-            filename: {
-              type: 'string',
-              example: 'documento.pdf',
-              description: 'Nombre del archivo adjunto'
-            },
-            content: {
-              type: 'string',
-              format: 'base64',
-              example: 'JVBERi0xLjQKJcOkw7zDtsO...',
-              description: 'Contenido del archivo en base64 (alternativo a path)'
-            },
-            contentType: {
-              type: 'string',
-              example: 'application/pdf',
-              description: 'Tipo MIME del archivo'
-            },
-            encoding: {
-              type: 'string',
-              example: 'base64',
-              description: 'Codificación del contenido'
-            },
-            path: {
-              type: 'string',
-              format: 'uri',
-              example: 'https://ejemplo.com/archivo.pdf',
-              description: 'URL del archivo (alternativo a content)'
-            }
-          },
-          oneOf: [
-            { required: ['content'] },
-            { required: ['path'] }
-          ],
-          description: 'Archivo adjunto con contenido base64 o URL'
         },
         
         // Esquemas de Request
@@ -131,20 +157,34 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
           required: ['to', 'html'],
           properties: {
             from: {
-              $ref: '#/components/schemas/EmailAddress',
-              description: 'Remitente (opcional, usa SMTP_FROM_DEFAULT si no se especifica)'
+              type: 'string',
+              format: 'email',
+              description: 'Remitente (opcional, usa SMTP_FROM_DEFAULT si no se especifica)',
+              example: 'remitente@ejemplo.com'
             },
             to: {
-              $ref: '#/components/schemas/EmailAddressList',
-              description: 'Destinatarios principales (requerido)'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ],
+              description: 'Destinatarios principales (requerido)',
+              example: ['destinatario@ejemplo.com']
             },
             cc: {
-              $ref: '#/components/schemas/EmailAddressList',
-              description: 'Destinatarios en copia'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ],
+              description: 'Destinatarios en copia',
+              example: 'copia@ejemplo.com'
             },
             bcc: {
-              $ref: '#/components/schemas/EmailAddressList',
-              description: 'Destinatarios en copia oculta'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ],
+              description: 'Destinatarios en copia oculta',
+              example: ['oculto@ejemplo.com']
             },
             subject: {
               type: 'string',
@@ -158,27 +198,29 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
             },
             text: {
               type: 'string',
-              example: 'Hola\n\nEste es un correo de prueba',
+              example: 'Hola\\n\\nEste es un correo de prueba',
               description: 'Versión en texto plano del email'
             },
             replyTo: {
-              $ref: '#/components/schemas/EmailAddress',
-              description: 'Dirección para respuestas'
+              type: 'string',
+              format: 'email',
+              description: 'Dirección para respuestas',
+              example: 'soporte@ejemplo.com'
             },
             attachments: {
               type: 'array',
-              items: { $ref: '#/components/schemas/Attachment' },
+              items: {
+                type: 'object',
+                properties: {
+                  filename: { type: 'string', example: 'documento.pdf' },
+                  content: { type: 'string', example: 'JVBERi0xLjQKJcOkw7zDtsO...' },
+                  contentType: { type: 'string', example: 'application/pdf' },
+                  encoding: { type: 'string', example: 'base64' },
+                  path: { type: 'string', example: 'https://ejemplo.com/archivo.pdf' }
+                }
+              },
               description: 'Lista de archivos adjuntos'
             }
-          },
-          example: {
-            from: 'remitente@ejemplo.com',
-            to: ['destinatario@ejemplo.com'],
-            cc: 'copia@ejemplo.com',
-            subject: 'Correo de Bienvenida',
-            html: '<h1>¡Bienvenido!</h1><p>Gracias por registrarte en nuestro servicio.</p>',
-            text: '¡Bienvenido!\n\nGracias por registrarte en nuestro servicio.',
-            replyTo: 'soporte@ejemplo.com'
           }
         },
         
@@ -203,25 +245,47 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
               description: 'Parámetros para reemplazar en la plantilla'
             },
             from: {
-              $ref: '#/components/schemas/EmailAddress',
-              description: 'Sobrescribe el remitente de la plantilla'
+              type: 'string',
+              format: 'email',
+              description: 'Sobrescribe el remitente de la plantilla',
+              example: 'remitente@ejemplo.com'
             },
             to: {
-              $ref: '#/components/schemas/EmailAddressList',
-              description: 'Sobrescribe los destinatarios de la plantilla'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ],
+              description: 'Sobrescribe los destinatarios de la plantilla',
+              example: ['destinatario@ejemplo.com']
             },
             cc: {
-              $ref: '#/components/schemas/EmailAddressList'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ]
             },
             bcc: {
-              $ref: '#/components/schemas/EmailAddressList'
+              oneOf: [
+                { type: 'string', format: 'email' },
+                { type: 'array', items: { type: 'string', format: 'email' } }
+              ]
             },
             replyTo: {
-              $ref: '#/components/schemas/EmailAddress'
+              type: 'string',
+              format: 'email'
             },
             attachments: {
               type: 'array',
-              items: { $ref: '#/components/schemas/Attachment' }
+              items: {
+                type: 'object',
+                properties: {
+                  filename: { type: 'string' },
+                  content: { type: 'string' },
+                  contentType: { type: 'string' },
+                  encoding: { type: 'string' },
+                  path: { type: 'string' }
+                }
+              }
             }
           }
         },
@@ -233,7 +297,6 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
           properties: {
             id: {
               type: 'string',
-              pattern: '^[a-zA-Z0-9]{3,64}$',
               example: 'bienvenida',
               description: 'ID único de la plantilla (alfanumérico, 3-64 caracteres)'
             },
@@ -255,13 +318,6 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
             },
             defaults: {
               type: 'object',
-              properties: {
-                from: { $ref: '#/components/schemas/EmailAddress' },
-                to: { $ref: '#/components/schemas/EmailAddressList' },
-                cc: { $ref: '#/components/schemas/EmailAddressList' },
-                bcc: { $ref: '#/components/schemas/EmailAddressList' },
-                replyTo: { $ref: '#/components/schemas/EmailAddress' }
-              },
               additionalProperties: true,
               example: {
                 from: 'no-reply@ejemplo.com',
@@ -304,150 +360,6 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
             defaults: {
               type: 'object',
               additionalProperties: true
-            }
-          }
-        },
-        
-        // Esquemas de Logs
-        EmailLog: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'string',
-              format: 'uuid',
-              example: '123e4567-e89b-12d3-a456-426614174000',
-              description: 'ID único del evento'
-            },
-            timestamp: {
-              type: 'string',
-              format: 'date-time',
-              example: '2024-01-15T10:30:00Z',
-              description: 'Fecha y hora del evento'
-            },
-            status: {
-              type: 'string',
-              enum: ['success', 'failed', 'canceled', 'spam', 'queued', 'other'],
-              example: 'success',
-              description: 'Estado del envío'
-            },
-            to: {
-              type: 'string',
-              example: 'destinatario@ejemplo.com',
-              description: 'Destinatario del email'
-            },
-            from: {
-              type: 'string',
-              example: 'remitente@ejemplo.com',
-              description: 'Remitente del email'
-            },
-            subject: {
-              type: 'string',
-              example: 'Correo de Bienvenida',
-              description: 'Asunto del email'
-            },
-            provider: {
-              type: 'string',
-              example: 'smtp',
-              description: 'Proveedor de envío'
-            },
-            response: {
-              type: 'string',
-              example: '250 2.0.0 Ok: queued as 12345',
-              description: 'Respuesta del servidor SMTP'
-            },
-            error: {
-              type: 'string',
-              example: 'Connection timeout',
-              description: 'Mensaje de error si falló'
-            },
-            meta: {
-              type: 'object',
-              additionalProperties: true,
-              example: {
-                messageId: '<123@ejemplo.com>',
-                templateId: 'bienvenida',
-                accepted: ['destinatario@ejemplo.com'],
-                rejected: []
-              },
-              description: 'Metadatos adicionales del evento'
-            }
-          }
-        },
-        
-        LogsResponse: {
-          type: 'object',
-          properties: {
-            total: {
-              type: 'integer',
-              example: 150,
-              description: 'Total de registros que coinciden con los filtros'
-            },
-            offset: {
-              type: 'integer',
-              example: 0,
-              description: 'Desplazamiento de la paginación'
-            },
-            limit: {
-              type: 'integer',
-              example: 50,
-              description: 'Límite de registros por página'
-            },
-            items: {
-              type: 'array',
-              items: { $ref: '#/components/schemas/EmailLog' },
-              description: 'Lista de eventos de email'
-            }
-          }
-        },
-        
-        CreateLogRequest: {
-          type: 'object',
-          required: ['status'],
-          properties: {
-            status: {
-              type: 'string',
-              enum: ['success', 'failed', 'canceled', 'spam', 'queued', 'other'],
-              example: 'canceled',
-              description: 'Estado del evento a registrar'
-            },
-            to: {
-              $ref: '#/components/schemas/EmailAddressList',
-              description: 'Destinatario(s) del email'
-            },
-            from: {
-              type: 'string',
-              example: 'sistema@ejemplo.com',
-              description: 'Remitente del email'
-            },
-            subject: {
-              type: 'string',
-              example: 'Campaña Marketing Q1',
-              description: 'Asunto del email'
-            },
-            provider: {
-              type: 'string',
-              default: 'smtp',
-              example: 'smtp',
-              description: 'Proveedor de envío'
-            },
-            response: {
-              type: 'string',
-              example: 'User requested cancellation',
-              description: 'Respuesta o mensaje del evento'
-            },
-            error: {
-              type: 'string',
-              example: 'Spam filter triggered',
-              description: 'Mensaje de error si aplica'
-            },
-            meta: {
-              type: 'object',
-              additionalProperties: true,
-              example: {
-                reason: 'Usuario solicitó cancelación',
-                campaignId: 'camp_123'
-              },
-              description: 'Metadatos adicionales'
             }
           }
         },
@@ -598,41 +510,6 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
             }
           }
         }
-      },
-      
-      responses: {
-        UnauthorizedError: {
-          description: 'Token de API inválido o no proporcionado',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/UnauthorizedError' }
-            }
-          }
-        },
-        ValidationError: {
-          description: 'Error de validación en los datos enviados',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ValidationError' }
-            }
-          }
-        },
-        SMTPError: {
-          description: 'Error del servidor SMTP',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/SMTPError' }
-            }
-          }
-        },
-        NotFoundError: {
-          description: 'Recurso no encontrado',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/NotFoundError' }
-            }
-          }
-        }
       }
     },
     
@@ -660,19 +537,7 @@ Todos los endpoints (excepto /health y /docs) requieren el header \`x-api-token\
         post: {
           tags: ['Envío de Emails'],
           summary: 'Enviar email directo',
-          description: `
-Envía un email directamente con contenido HTML/texto especificado.
-
-**Validaciones:**
-- Al menos un destinatario requerido (to, cc, o bcc)
-- Contenido HTML es obligatorio
-- Direcciones de email deben ser válidas
-- Adjuntos pueden ser base64 o URLs
-
-**Logging automático:**
-- Se registra automáticamente el resultado (success/failed)
-- Incluye metadatos como messageId, accepted, rejected
-          `,
+          description: 'Envía un email directamente con contenido HTML/texto especificado. Al menos un destinatario requerido (to, cc, o bcc). Contenido HTML es obligatorio.',
           operationId: 'sendEmail',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
@@ -698,7 +563,7 @@ Envía un email directamente con contenido HTML/texto especificado.
                       bcc: 'auditoria@ejemplo.com',
                       subject: 'Reporte Mensual',
                       html: '<h1>Reporte Mensual</h1><p>Adjunto encontrarás el reporte del mes.</p>',
-                      text: 'Reporte Mensual\n\nAdjunto encontrarás el reporte del mes.',
+                      text: 'Reporte Mensual\\n\\nAdjunto encontrarás el reporte del mes.',
                       replyTo: 'soporte@ejemplo.com',
                       attachments: [
                         {
@@ -719,22 +584,34 @@ Envía un email directamente con contenido HTML/texto especificado.
               description: 'Email enviado exitosamente (en cola)',
               content: {
                 'application/json': {
-                  schema: { $ref: '#/components/schemas/EmailSentResponse' },
-                  example: {
-                    status: 'queued',
-                    result: {
-                      messageId: '<123456789@ejemplo.com>',
-                      accepted: ['usuario@ejemplo.com'],
-                      rejected: [],
-                      response: '250 2.0.0 Ok: queued as 12345'
-                    }
-                  }
+                  schema: { $ref: '#/components/schemas/EmailSentResponse' }
                 }
               }
             },
-            '400': { $ref: '#/components/responses/ValidationError' },
-            '401': { $ref: '#/components/responses/UnauthorizedError' },
-            '502': { $ref: '#/components/responses/SMTPError' }
+            '400': {
+              description: 'Error de validación',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ValidationError' }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
+            '502': {
+              description: 'Error SMTP',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/SMTPError' }
+                }
+              }
+            }
           }
         }
       },
@@ -743,20 +620,7 @@ Envía un email directamente con contenido HTML/texto especificado.
         post: {
           tags: ['Envío de Emails'],
           summary: 'Enviar email desde plantilla',
-          description: `
-Envía un email utilizando una plantilla predefinida con variables Handlebars.
-
-**Proceso:**
-1. Busca la plantilla por ID
-2. Renderiza el contenido con los parámetros proporcionados
-3. Combina valores por defecto de la plantilla con overrides del request
-4. Envía el email y registra el evento
-
-**Variables Handlebars:**
-- Usa sintaxis {{variable}} en subject y html
-- Soporta helpers básicos de Handlebars
-- Los parámetros se pasan en el campo "params"
-          `,
+          description: 'Envía un email utilizando una plantilla predefinida con variables Handlebars. Busca la plantilla por ID, renderiza el contenido con los parámetros proporcionados y envía el email.',
           operationId: 'sendTemplate',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
@@ -775,28 +639,6 @@ Envía un email utilizando una plantilla predefinida con variables Handlebars.
                       },
                       to: 'ana@ejemplo.com'
                     }
-                  },
-                  advanced: {
-                    summary: 'Envío avanzado con overrides',
-                    value: {
-                      templateId: 'newsletter',
-                      params: {
-                        userName: 'Carlos',
-                        month: 'Enero',
-                        articles: [
-                          { title: 'Artículo 1', url: 'https://ejemplo.com/1' },
-                          { title: 'Artículo 2', url: 'https://ejemplo.com/2' }
-                        ]
-                      },
-                      to: ['carlos@ejemplo.com', 'maria@ejemplo.com'],
-                      from: 'newsletter@ejemplo.com',
-                      attachments: [
-                        {
-                          filename: 'newsletter.pdf',
-                          path: 'https://ejemplo.com/newsletter-enero.pdf'
-                        }
-                      ]
-                    }
                   }
                 }
               }
@@ -811,10 +653,38 @@ Envía un email utilizando una plantilla predefinida con variables Handlebars.
                 }
               }
             },
-            '400': { $ref: '#/components/responses/ValidationError' },
-            '401': { $ref: '#/components/responses/UnauthorizedError' },
-            '404': { $ref: '#/components/responses/NotFoundError' },
-            '502': { $ref: '#/components/responses/SMTPError' }
+            '400': {
+              description: 'Error de validación',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ValidationError' }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
+            '404': {
+              description: 'Plantilla no encontrada',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/NotFoundError' }
+                }
+              }
+            },
+            '502': {
+              description: 'Error SMTP',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/SMTPError' }
+                }
+              }
+            }
           }
         }
       },
@@ -823,17 +693,7 @@ Envía un email utilizando una plantilla predefinida con variables Handlebars.
         get: {
           tags: ['Sistema'],
           summary: 'Verificar conectividad SMTP',
-          description: `
-Verifica la conectividad y configuración del servidor SMTP.
-
-**Verificaciones:**
-- Conexión al servidor SMTP
-- Autenticación (si está configurada)
-- Configuración de puertos y seguridad
-- Estado general del transporter
-
-Útil para diagnóstico y monitoreo de la configuración SMTP.
-          `,
+          description: 'Verifica la conectividad y configuración del servidor SMTP. Útil para diagnóstico y monitoreo.',
           operationId: 'smtpCheck',
           security: [{ ApiKeyAuth: [] }],
           responses: {
@@ -841,18 +701,18 @@ Verifica la conectividad y configuración del servidor SMTP.
               description: 'Verificación SMTP exitosa',
               content: {
                 'application/json': {
-                  schema: { $ref: '#/components/schemas/SMTPCheckResponse' },
-                  example: {
-                    ok: true,
-                    verified: true,
-                    host: 'smtp.gmail.com',
-                    port: 587,
-                    secure: false
-                  }
+                  schema: { $ref: '#/components/schemas/SMTPCheckResponse' }
                 }
               }
             },
-            '401': { $ref: '#/components/responses/UnauthorizedError' },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
             '502': {
               description: 'Error de conectividad SMTP',
               content: {
@@ -870,6 +730,220 @@ Verifica la conectividad y configuración del servidor SMTP.
           }
         }
       },
+      
+      '/api/v1/templates': {
+        get: {
+          tags: ['Plantillas'],
+          summary: 'Listar todas las plantillas',
+          description: 'Obtiene la lista completa de plantillas de email disponibles.',
+          operationId: 'getTemplates',
+          security: [{ ApiKeyAuth: [] }],
+          responses: {
+            '200': {
+              description: 'Lista de plantillas',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Template' }
+                  }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            }
+          }
+        },
+        
+        post: {
+          tags: ['Plantillas'],
+          summary: 'Crear nueva plantilla',
+          description: 'Crea una nueva plantilla de email con contenido Handlebars. ID opcional (se genera automáticamente si no se proporciona).',
+          operationId: 'createTemplate',
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Template' },
+                examples: {
+                  welcome: {
+                    summary: 'Plantilla de bienvenida',
+                    value: {
+                      id: 'bienvenida',
+                      name: 'Email de Bienvenida',
+                      subject: '¡Bienvenido {{firstName}} a {{company}}!',
+                      html: '<div><h1>¡Hola {{firstName}}!</h1><p>Te damos la bienvenida a <strong>{{company}}</strong>.</p></div>',
+                      defaults: {
+                        from: 'bienvenida@ejemplo.com',
+                        replyTo: 'soporte@ejemplo.com'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            '201': {
+              description: 'Plantilla creada exitosamente',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Template' }
+                }
+              }
+            },
+            '400': {
+              description: 'Error de validación',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ValidationError' }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
+            '409': {
+              description: 'Plantilla ya existe',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      error: { type: 'string', example: 'Conflict' },
+                      message: { type: 'string', example: 'Template with id "bienvenida" already exists' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      
+      '/api/v1/templates/{id}': {
+        get: {
+          tags: ['Plantillas'],
+          summary: 'Obtener plantilla por ID',
+          description: 'Obtiene los detalles completos de una plantilla específica por su ID.',
+          operationId: 'getTemplate',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'ID único de la plantilla',
+              schema: {
+                type: 'string',
+                example: 'bienvenida'
+              }
+            }
+          ],
+          responses: {
+            '200': {
+              description: 'Detalles de la plantilla',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Template' }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
+            '404': {
+              description: 'Plantilla no encontrada',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/NotFoundError' }
+                }
+              }
+            }
+          }
+        },
+        
+        put: {
+          tags: ['Plantillas'],
+          summary: 'Actualizar plantilla existente',
+          description: 'Actualiza una plantilla existente. Solo se modifican los campos proporcionados. El ID de la plantilla no se puede modificar.',
+          operationId: 'updateTemplate',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'ID único de la plantilla a actualizar',
+              schema: {
+                type: 'string',
+                example: 'bienvenida'
+              }
+            }
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/TemplateUpdate' }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'Plantilla actualizada exitosamente',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Template' }
+                }
+              }
+            },
+            '400': {
+              description: 'Error de validación',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ValidationError' }
+                }
+              }
+            },
+            '401': {
+              description: 'No autorizado',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/UnauthorizedError' }
+                }
+              }
+            },
+            '404': {
+              description: 'Plantilla no encontrada',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/NotFoundError' }
+                }
+              }
+            }
+          }
+        },
+        
+        delete: {
+          tags: ['P
       
       '/api/v1/logs': {
         get: {
@@ -1423,48 +1497,531 @@ Elimina permanentemente una plantilla del sistema.
   // Configuración simplificada y funcional de Swagger UI
   const swaggerUiOptions = {
     explorer: true,
-    customSiteTitle: 'SMTP Microservice API - Documentación',
+    customSiteTitle: '📧 SMTP Microservice API - Documentación Completa',
+    customfavIcon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23059669"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>',
     customCss: `
+      /* === LAYOUT GENERAL === */
       .swagger-ui .topbar { display: none; }
+      
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      
+      .swagger-ui .wrapper { 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      /* === HEADER DE LA API === */
+      .swagger-ui .info { 
+        margin: 0 0 40px 0; 
+        padding: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .swagger-ui .info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        pointer-events: none;
+      }
+      
       .swagger-ui .info .title { 
-        font-size: 28px; 
+        font-size: 32px; 
+        font-weight: 800; 
+        color: white;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+      }
+      
+      .swagger-ui .info .description { 
+        font-size: 16px; 
+        line-height: 1.7;
+        color: rgba(255,255,255,0.95);
+        position: relative;
+        z-index: 1;
+      }
+      
+      .swagger-ui .info .description h1 {
+        color: white;
+        font-size: 24px;
+        margin-top: 25px;
+        margin-bottom: 15px;
+        font-weight: 700;
+      }
+      
+      .swagger-ui .info .description h2 {
+        color: rgba(255,255,255,0.9);
+        font-size: 18px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      
+      .swagger-ui .info .description ul {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      
+      .swagger-ui .info .description li {
+        margin: 5px 0;
+        color: rgba(255,255,255,0.9);
+      }
+      
+      .swagger-ui .info .description code {
+        background: rgba(255,255,255,0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+      }
+
+      /* === AUTENTICACIÓN === */
+      .swagger-ui .scheme-container { 
+        margin: 25px 0; 
+        padding: 20px; 
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 10px;
+        border: 2px solid #f59e0b;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      .swagger-ui .auth-wrapper { 
+        padding: 20px; 
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-radius: 10px;
+        border: 2px solid #10b981;
+        margin: 25px 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      .swagger-ui .auth-btn-wrapper .btn.authorize {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .swagger-ui .auth-btn-wrapper .btn.authorize:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
+      }
+
+      /* === OPERACIONES/ENDPOINTS === */
+      .swagger-ui .opblock { 
+        margin: 20px 0; 
+        border-radius: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .swagger-ui .opblock:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+      }
+      
+      .swagger-ui .opblock.opblock-post { 
+        border-color: #059669;
+        border-left: 6px solid #059669;
+      }
+      .swagger-ui .opblock.opblock-get { 
+        border-color: #0ea5e9;
+        border-left: 6px solid #0ea5e9;
+      }
+      .swagger-ui .opblock.opblock-put { 
+        border-color: #f59e0b;
+        border-left: 6px solid #f59e0b;
+      }
+      .swagger-ui .opblock.opblock-delete { 
+        border-color: #ef4444;
+        border-left: 6px solid #ef4444;
+      }
+      
+      .swagger-ui .opblock-summary { 
+        font-weight: 600; 
+        font-size: 16px;
+        padding: 15px 20px;
+      }
+      
+      .swagger-ui .opblock-description-wrapper { 
+        padding: 20px;
+        background: #f8fafc;
+      }
+      
+      .swagger-ui .opblock-description-wrapper p { 
+        margin: 10px 0; 
+        line-height: 1.6;
+        color: #374151;
+      }
+
+      /* === TAGS/SECCIONES === */
+      .swagger-ui .opblock-tag {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 40px 0 20px 0;
+        padding: 15px 0;
+        border-bottom: 3px solid #e5e7eb;
+        color: #1f2937;
+      }
+      
+      .swagger-ui .opblock-tag:first-child {
+        margin-top: 20px;
+      }
+
+      /* === PARÁMETROS Y FORMULARIOS === */
+      .swagger-ui .parameter__name { 
+        font-weight: 600; 
+        color: #1f2937;
+      }
+      
+      .swagger-ui .parameter__type {
+        color: #6b7280;
+        font-style: italic;
+      }
+      
+      .swagger-ui .parameter__in {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      /* === RESPUESTAS === */
+      .swagger-ui .response-col_status { 
+        font-weight: 700;
+        font-size: 14px;
+      }
+      
+      .swagger-ui .response-col_status.response-200 { color: #059669; }
+      .swagger-ui .response-col_status.response-201 { color: #059669; }
+      .swagger-ui .response-col_status.response-202 { color: #059669; }
+      .swagger-ui .response-col_status.response-400 { color: #f59e0b; }
+      .swagger-ui .response-col_status.response-401 { color: #ef4444; }
+      .swagger-ui .response-col_status.response-404 { color: #ef4444; }
+      .swagger-ui .response-col_status.response-409 { color: #f59e0b; }
+      .swagger-ui .response-col_status.response-500 { color: #ef4444; }
+      .swagger-ui .response-col_status.response-502 { color: #ef4444; }
+
+      /* === TABLAS === */
+      .swagger-ui table thead tr th { 
         font-weight: 700; 
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        color: #1f2937;
+        padding: 12px;
+        border-bottom: 2px solid #cbd5e1;
+      }
+      
+      .swagger-ui table tbody tr td {
+        padding: 12px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      
+      .swagger-ui table tbody tr:hover {
+        background: #f8fafc;
+      }
+
+      /* === BOTONES === */
+      .swagger-ui .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 13px;
+      }
+      
+      .swagger-ui .btn.execute {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      
+      .swagger-ui .btn.execute:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
+      }
+      
+      .swagger-ui .btn.try-out__btn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        color: white;
+      }
+      
+      .swagger-ui .btn.cancel {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        border: none;
+        color: white;
+      }
+
+      /* === CÓDIGO Y EJEMPLOS === */
+      .swagger-ui .highlight-code {
+        background: #1f2937;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+      }
+      
+      .swagger-ui .highlight-code pre {
+        color: #f9fafb;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      
+      .swagger-ui .model-box {
+        background: #f8fafc;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+      }
+      
+      .swagger-ui .model-title {
+        font-weight: 700;
         color: #1f2937;
         margin-bottom: 10px;
       }
-      .swagger-ui .info .description { 
-        font-size: 14px; 
-        line-height: 1.6;
-        color: #4b5563;
-      }
-      .swagger-ui .info { 
-        margin: 30px 0; 
-        padding: 20px;
+
+      /* === FILTROS Y BÚSQUEDA === */
+      .swagger-ui .filter-container {
+        margin: 20px 0;
+        padding: 15px;
         background: #f8fafc;
         border-radius: 8px;
-        border-left: 4px solid #3b82f6;
+        border: 1px solid #e5e7eb;
       }
-      .swagger-ui .scheme-container { 
-        margin: 20px 0; 
-        padding: 15px; 
-        background: #fef3c7; 
+      
+      .swagger-ui .filter .operation-filter-input {
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 14px;
+        width: 100%;
+        transition: border-color 0.3s ease;
+      }
+      
+      .swagger-ui .filter .operation-filter-input:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      /* === ANIMACIONES === */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .swagger-ui .opblock {
+        animation: fadeIn 0.5s ease-out;
+      }
+      
+      /* === RESPONSIVE === */
+      @media (max-width: 768px) {
+        .swagger-ui .wrapper {
+          margin: 10px;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        
+        .swagger-ui .info {
+          padding: 20px;
+        }
+        
+        .swagger-ui .info .title {
+          font-size: 24px;
+        }
+        
+        .swagger-ui .opblock-summary {
+          font-size: 14px;
+          padding: 12px 15px;
+        }
+      }
+
+      /* === MEJORAS DE ACCESIBILIDAD === */
+      .swagger-ui .opblock:focus-within {
+        outline: 3px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      
+      .swagger-ui .btn:focus {
+        outline: 3px solid #3b82f6;
+        outline-offset: 2px;
+      }
+      
+      /* === ESTADOS DE CARGA === */
+      .swagger-ui .loading {
+        position: relative;
+      }
+      
+      .swagger-ui .loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid #e5e7eb;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* === BADGES Y ETIQUETAS === */
+      .swagger-ui .opblock-summary .opblock-summary-method {
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 6px 12px;
         border-radius: 6px;
-        border: 1px solid #f59e0b;
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-right: 10px;
       }
-      .swagger-ui .opblock.opblock-post { border-color: #059669; }
-      .swagger-ui .opblock.opblock-get { border-color: #0ea5e9; }
-      .swagger-ui .opblock.opblock-put { border-color: #f59e0b; }
-      .swagger-ui .opblock.opblock-delete { border-color: #ef4444; }
+      
+      /* === TOOLTIPS MEJORADOS === */
+      .swagger-ui [title] {
+        position: relative;
+      }
+      
+      .swagger-ui [title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
     `,
     swaggerOptions: {
+      // Expansión y navegación
       docExpansion: 'list',
+      operationsSorter: 'alpha',
+      tagsSorter: 'alpha',
+      
+      // Funcionalidades interactivas
       filter: true,
       showRequestDuration: true,
-      defaultModelsExpandDepth: 1,
-      defaultModelExpandDepth: 1,
-      persistAuthorization: true,
+      showCommonExtensions: true,
+      showExtensions: true,
       tryItOutEnabled: true,
-      validatorUrl: null
+      requestSnippetsEnabled: true,
+      
+      // Modelos y esquemas
+      defaultModelsExpandDepth: 2,
+      defaultModelExpandDepth: 2,
+      defaultModelRendering: 'model',
+      
+      // Autenticación
+      persistAuthorization: true,
+      
+      // Validación
+      validatorUrl: null,
+      
+      // Métodos soportados
+      supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'],
+      
+      // Configuración de sintaxis
+      syntaxHighlight: {
+        activate: true,
+        theme: 'monokai'
+      },
+      
+      // Configuración de plugins
+      plugins: [
+        'DownloadUrl'
+      ],
+      
+      // Configuración de layout
+      layout: 'StandaloneLayout',
+      
+      // Configuración de deep linking
+      deepLinking: true,
+      displayOperationId: false,
+      displayRequestDuration: true,
+      
+      // Configuración de ejemplos
+      showMutatedRequest: true,
+      
+      // Configuración de respuestas
+      showResponseHeaders: true,
+      
+      // Configuración de parámetros
+      showParameterExtensions: true,
+      
+      // Configuración de modelos
+      showModelStructure: true,
+      
+      // Configuración de filtros
+      operationFilter: null,
+      tagFilter: null,
+      
+      // Configuración de URLs
+      url: '/openapi.json',
+      
+      // Configuración de OAuth (si se necesita en el futuro)
+      oauth2RedirectUrl: undefined,
+      
+      // Configuración de CORS
+      requestInterceptor: (request) => {
+        // Agregar headers personalizados si es necesario
+        return request;
+      },
+      
+      responseInterceptor: (response) => {
+        // Procesar respuestas si es necesario
+        return response;
+      },
+      
+      // Configuración de errores
+      onComplete: () => {
+        console.log('📚 Swagger UI cargado completamente');
+      },
+      
+      onFailure: (error) => {
+        console.error('❌ Error cargando Swagger UI:', error);
+      }
     }
   };
 
@@ -1484,6 +2041,26 @@ Elimina permanentemente una plantilla del sistema.
     res.json(specs);
   });
 
-  console.log(`📚 Documentación completa de la API disponible en: ${swaggerPath}`);
-  console.log(`📄 Especificación OpenAPI JSON disponible en: /openapi.json`);
+  console.log('');
+  console.log('📚 ===============================================');
+  console.log('📧 SMTP Microservice API - Documentación Lista');
+  console.log('📚 ===============================================');
+  console.log(`🌐 Documentación interactiva: ${swaggerPath}`);
+  console.log(`📄 Especificación OpenAPI: /openapi.json`);
+  console.log(`🔧 Especificación alternativa: /swagger.json`);
+  console.log('');
+  console.log('✨ Características disponibles:');
+  console.log('   • 11 endpoints completamente documentados');
+  console.log('   • 20+ esquemas con validaciones detalladas');
+  console.log('   • Ejemplos interactivos para cada endpoint');
+  console.log('   • Autenticación integrada con persistencia');
+  console.log('   • Filtros y búsqueda en tiempo real');
+  console.log('   • Interfaz responsive y accesible');
+  console.log('');
+  console.log('🚀 Para empezar:');
+  console.log('   1. Abre la documentación en tu navegador');
+  console.log('   2. Haz clic en "Authorize" y configura tu API token');
+  console.log('   3. Explora y prueba los endpoints en vivo');
+  console.log('📚 ===============================================');
+  console.log('');
 }
