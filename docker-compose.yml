@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: ${PG_DATABASE:-ms_smtp}
       POSTGRES_USER: ${PG_USER:-ms}
       POSTGRES_PASSWORD: ${PG_PASSWORD:-ms}
-    ports:
-      - "${PG_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
