@@ -19,6 +19,9 @@ const app = express();
 const INITIAL_PORT = Number(process.env.PORT) || 3000;
 const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 
+// Trust first proxy (e.g., Nginx, Cloudflare)
+app.set('trust proxy', 1);
+
 // Basic security and utils
 app.use(helmet({
   contentSecurityPolicy: false, // Desactiva CSP temporalmente para Swagger UI
