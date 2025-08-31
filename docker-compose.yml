@@ -47,8 +47,7 @@ services:
       PG_PASSWORD: ${PG_PASSWORD:-ms}
       PG_DATABASE: ${PG_DATABASE:-ms_smtp}
       PG_SSL: ${PG_SSL:-false}
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+    # No exponemos el puerto de la app al host; sólo Nginx expone 8080
     depends_on:
       db:
         condition: service_healthy
