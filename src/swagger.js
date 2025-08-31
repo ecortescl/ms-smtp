@@ -338,5 +338,32 @@ export function setupSwagger(app) {
   };
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
-  app.use(swaggerPath, swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+  
+  // Configura Swagger UI para usar rutas absolutas
+  const swaggerOptions = {
+    explorer: true,
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'SMTP Microservice API',
+    customfavIcon: false,
+    swaggerOptions: {
+      urls: [
+        {
+          url: '/swagger.json',
+          name: 'API v1'
+        }
+      ]
+    }
+  };
+
+  // Sirve el archivo swagger.json
+  app.get('/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(specs);
+  });
+
+  // Configura Swagger UI
+  app.use(swaggerPath, 
+    swaggerUi.serveFiles(swaggerOptions),
+    swaggerUi.setup(null, swaggerOptions)
+  );
 }

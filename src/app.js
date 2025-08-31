@@ -20,9 +20,15 @@ const INITIAL_PORT = Number(process.env.PORT) || 3000;
 const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 
 // Basic security and utils
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Desactiva CSP temporalmente para Swagger UI
+  crossOriginEmbedderPolicy: false
+}));
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+
+// Serve static files from node_modules/swagger-ui-dist
+app.use('/swagger-ui', express.static('node_modules/swagger-ui-dist'));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
