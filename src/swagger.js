@@ -2,7 +2,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 export function setupSwagger(app) {
-  const swaggerPath = process.env.SWAGGER_PATH || '/docs';
+  const swaggerPath = process.env.SWAGGER_PATH || '/';
   const swaggerDefinition = {
     openapi: '3.0.3',
     info: {
