@@ -339,7 +339,7 @@ export function setupSwagger(app) {
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
   
-  // Configura Swagger UI con CDN
+  // Configura Swagger UI con CDN y rutas absolutas
   const swaggerHtml = `
   <!DOCTYPE html>
   <html lang="en">
@@ -355,9 +355,10 @@ export function setupSwagger(app) {
   <body>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js"></script>
     <script>
       window.onload = function() {
-        const ui = SwaggerUIBundle({
+        window.ui = SwaggerUIBundle({
           spec: ${JSON.stringify(specs, null, 2)},
           dom_id: '#swagger-ui',
           presets: [
@@ -365,7 +366,9 @@ export function setupSwagger(app) {
             SwaggerUIBundle.SwaggerUIStandalonePreset
           ],
           layout: "BaseLayout",
-          deepLinking: true
+          deepLinking: true,
+          validatorUrl: null, // Desactiva la validación para evitar errores
+          defaultModelsExpandDepth: -1 // Oculta los modelos por defecto
         });
       };
     </script>

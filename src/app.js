@@ -8,10 +8,10 @@ import fs from 'fs';
 
 import { authMiddleware } from './middleware/auth.js';
 import emailRouter from './routes/email.js';
-import { setupSwagger } from './swagger.js';
 import logsRouter from './routes/logs.js';
 import templatesRouter from './routes/templates.js';
 import { initDb, pgEnabled } from './services/db.js';
+import { setupSwagger } from './swagger.js';  // Mover al final para asegurar que todas las dependencias estén cargadas
 
 dotenv.config();
 
@@ -22,13 +22,8 @@ const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 // Trust first proxy (e.g., Nginx, Cloudflare)
 app.set('trust proxy', 1);
 
-// Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
-app.use(helmet({
-  contentSecurityPolicy: false, // Desactivado temporalmente para Swagger UI
-  crossOriginEmbedderPolicy: false,
-  crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: false
-}));
+// Configura Swagger antes de otros middlewares para evitar conflictos
+setupSwagger(app);
 
 // Configuración de CORS permisiva para desarrollo
 app.use(cors({
@@ -36,6 +31,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-token'],
   credentials: true
+}));
+
+// Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
+app.use(helmet({
+  contentSecurityPolicy: false, // Desactivado temporalmente para Swagger UI
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false
 }));
 
 app.use(express.json({ limit: '1mb' }));
