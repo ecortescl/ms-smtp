@@ -339,31 +339,48 @@ export function setupSwagger(app) {
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
   
-  // Configura Swagger UI para usar rutas absolutas
-  const swaggerOptions = {
-    explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'SMTP Microservice API',
-    customfavIcon: false,
-    swaggerOptions: {
-      urls: [
-        {
-          url: '/swagger.json',
-          name: 'API v1'
-        }
-      ]
-    }
-  };
+  // Configura Swagger UI con CDN
+  const swaggerHtml = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>SMTP Microservice API</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css">
+    <style>
+      .swagger-ui .topbar { display: none }
+      body { margin: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
+    <script>
+      window.onload = function() {
+        const ui = SwaggerUIBundle({
+          spec: ${JSON.stringify(specs, null, 2)},
+          dom_id: '#swagger-ui',
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset
+          ],
+          layout: "BaseLayout",
+          deepLinking: true
+        });
+      };
+    </script>
+  </body>
+  </html>
+  `;
 
-  // Sirve el archivo swagger.json
+  // Sirve la UI de Swagger
+  app.get(swaggerPath, (req, res) => {
+    res.send(swaggerHtml);
+  });
+
+  // Sirve el JSON de la especificación
   app.get('/swagger.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(specs);
   });
-
-  // Configura Swagger UI
-  app.use(swaggerPath, 
-    swaggerUi.serveFiles(swaggerOptions),
-    swaggerUi.setup(null, swaggerOptions)
-  );
 }
