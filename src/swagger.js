@@ -1,5 +1,8 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export function setupSwagger(app) {
   const swaggerPath = process.env.SWAGGER_PATH || '/';
@@ -339,47 +342,35 @@ export function setupSwagger(app) {
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
   
-  // Configura Swagger UI con CDN y rutas absolutas
-  const swaggerHtml = `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>SMTP Microservice API</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css">
-    <style>
+  // Configuración de Swagger UI sin usar archivos locales
+  const swaggerUiOptions = {
+    explorer: true,
+    swaggerOptions: {
+      url: '/swagger.json',
+      validatorUrl: null,
+      defaultModelsExpandDepth: -1,
+      docExpansion: 'none',
+      filter: true,
+      displayRequestDuration: true,
+      tryItOutEnabled: true
+    },
+    customSiteTitle: 'SMTP Microservice API',
+    customCss: `
       .swagger-ui .topbar { display: none }
-      body { margin: 0; }
-    </style>
-  </head>
-  <body>
-    <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js"></script>
-    <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-standalone-preset.js"></script>
-    <script>
-      window.onload = function() {
-        window.ui = SwaggerUIBundle({
-          spec: ${JSON.stringify(specs, null, 2)},
-          dom_id: '#swagger-ui',
-          presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIBundle.SwaggerUIStandalonePreset
-          ],
-          layout: "BaseLayout",
-          deepLinking: true,
-          validatorUrl: null, // Desactiva la validación para evitar errores
-          defaultModelsExpandDepth: -1 // Oculta los modelos por defecto
-        });
-      };
-    </script>
-  </body>
-  </html>
-  `;
+      .swagger-ui .info .title { font-size: 24px; font-weight: 600; }
+      .swagger-ui .info { margin: 20px 0; }
+    `,
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui-standalone-preset.js'
+    ],
+    customCssUrl: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui.css'
+    ]
+  };
 
   // Sirve la UI de Swagger
-  app.get(swaggerPath, (req, res) => {
-    res.send(swaggerHtml);
-  });
+  app.use(swaggerPath, swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
 
   // Sirve el JSON de la especificación
   app.get('/swagger.json', (req, res) => {
