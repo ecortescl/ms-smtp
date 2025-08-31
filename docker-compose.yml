@@ -23,10 +23,9 @@ services:
     working_dir: /app
     restart: unless-stopped
     command: sh -c "npm ci && npm run start"
-    volumes:
-      - ./:/app
     environment:
-      PORT: ${PORT:-3000}
+      PORT: ${PORT:-3003}
+      SOCKET_PATH: ${SOCKET_PATH:-/var/run/ms-smtp/ms-smtp.sock}
       API_TOKEN: ${API_TOKEN}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
@@ -49,8 +48,10 @@ services:
       PG_PASSWORD: ${PG_PASSWORD:-ms}
       PG_DATABASE: ${PG_DATABASE:-ms_smtp}
       PG_SSL: ${PG_SSL:-false}
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+    # Sin exposición de puertos: usaremos Unix socket para evitar conflictos
+    volumes:
+      - ./:/app
+      - /var/run/ms-smtp:/var/run/ms-smtp
     depends_on:
       db:
         condition: service_healthy

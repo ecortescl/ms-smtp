@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import fs from 'fs';
 
 import { authMiddleware } from './middleware/auth.js';
 import emailRouter from './routes/email.js';
@@ -16,6 +17,7 @@ dotenv.config();
 
 const app = express();
 const INITIAL_PORT = Number(process.env.PORT) || 3000;
+const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 
 // Basic security and utils
 app.use(helmet());
@@ -62,7 +64,7 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
 
-function startServer(port, retries = 10) {
+function startServerWithPort(port, retries = 10) {
   const server = app.listen(port, () => {
     console.log(`SMTP microservice listening on port ${port}`);
   });
@@ -70,11 +72,41 @@ function startServer(port, retries = 10) {
     if (err && err.code === 'EADDRINUSE' && retries > 0) {
       const nextPort = port + 1;
       console.warn(`Port ${port} in use. Trying ${nextPort}... (${retries - 1} retries left)`);
-      setTimeout(() => startServer(nextPort, retries - 1), 100);
+      setTimeout(() => startServerWithPort(nextPort, retries - 1), 100);
     } else {
       console.error('Failed to start server:', err);
       process.exit(1);
     }
+  });
+}
+
+function startServerWithSocket(socketPath) {
+  try {
+    // Ensure dir exists
+    const dir = socketPath.startsWith('/') ? socketPath.substring(0, socketPath.lastIndexOf('/')) : '.';
+    if (dir) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    // Remove stale socket if exists
+    if (fs.existsSync(socketPath)) {
+      fs.unlinkSync(socketPath);
+    }
+  } catch (e) {
+    console.warn('Socket pre-start cleanup warning:', e?.message || e);
+  }
+
+  const server = app.listen(socketPath, () => {
+    console.log(`SMTP microservice listening on unix socket ${socketPath}`);
+    try {
+      // Relax permissions so Nginx (host) can access when bind-mounted
+      fs.chmodSync(socketPath, 0o777);
+    } catch (e) {
+      console.warn('Could not chmod socket:', e?.message || e);
+    }
+  });
+  server.on('error', (err) => {
+    console.error('Failed to start server on socket:', err);
+    process.exit(1);
   });
 }
 
@@ -89,4 +121,8 @@ if (pgEnabled()) {
   }
 }
 
-startServer(INITIAL_PORT);
+if (SOCKET_PATH) {
+  startServerWithSocket(SOCKET_PATH);
+} else {
+  startServerWithPort(INITIAL_PORT);
+}
