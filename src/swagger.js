@@ -342,11 +342,11 @@ export function setupSwagger(app) {
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
   
-  // Configuración de Swagger UI sin usar archivos locales
-  const swaggerUiOptions = {
+  // 1) Swagger UI endpoint - must come before any catch-all routes
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs, {
     explorer: true,
-    swaggerOptions: {
-      url: '/swagger.json',
+    swaggerOptions: { 
+      url: '/docs/swagger.json',
       validatorUrl: null,
       defaultModelsExpandDepth: -1,
       docExpansion: 'none',
@@ -359,20 +359,16 @@ export function setupSwagger(app) {
       .swagger-ui .topbar { display: none }
       .swagger-ui .info .title { font-size: 24px; font-weight: 600; }
       .swagger-ui .info { margin: 20px 0; }
-    `,
-    customJs: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui-bundle.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui-standalone-preset.js'
-    ],
-    customCssUrl: [
-      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.5.0/swagger-ui.css'
-    ]
-  };
+    `
+  }));
 
-  // Sirve la UI de Swagger
-  app.use(swaggerPath, swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
-
-  // Sirve el JSON de la especificación
+  // 2) Serve the raw JSON spec
+  app.get('/docs/swagger.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(specs);
+  });
+  
+  // 3) Also serve at root for backward compatibility
   app.get('/swagger.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(specs);

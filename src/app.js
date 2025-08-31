@@ -22,9 +22,6 @@ const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 // Trust first proxy (e.g., Nginx, Cloudflare)
 app.set('trust proxy', 1);
 
-// Configura Swagger antes de otros middlewares para evitar conflictos
-setupSwagger(app);
-
 // Configuración de CORS permisiva para desarrollo
 app.use(cors({
   origin: '*',
@@ -32,6 +29,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-token'],
   credentials: true
 }));
+
+// Configura Swagger antes de otros middlewares para evitar conflictos
+setupSwagger(app);
 
 // Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
 app.use(helmet({
