@@ -39,6 +39,7 @@ services:
       LOG_DIR: ${LOG_DIR:-./data/logs}
       LOG_FILE_NAME: ${LOG_FILE_NAME:-email.log}
       TEMPLATES_DIR: ${TEMPLATES_DIR:-./data/templates}
+      SWAGGER_PATH: ${SWAGGER_PATH:-/docs}
       DB_PROVIDER: ${DB_PROVIDER:-postgres}
       PG_HOST: ${PG_HOST:-db}
       PG_PORT: ${PG_PORT:-5432}

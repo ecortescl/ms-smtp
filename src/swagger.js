@@ -2,6 +2,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 
 export function setupSwagger(app) {
+  const swaggerPath = process.env.SWAGGER_PATH || '/docs';
   const swaggerDefinition = {
     openapi: '3.0.3',
     info: {
@@ -337,5 +338,5 @@ export function setupSwagger(app) {
   };
 
   const specs = swaggerJSDoc({ definition: swaggerDefinition, apis: [] });
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+  app.use(swaggerPath, swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 }

@@ -89,6 +89,7 @@ Opciones avanzadas en `.env.example`.
 | PG_PASSWORD | No | - | Password Postgres. |
 | PG_DATABASE | No | ms_smtp | Base de datos. |
 | PG_SSL | No | false | Si la conexión usa SSL. |
+| SWAGGER_PATH | No | /docs | Ruta donde se monta Swagger UI. |
 
 ## Docker / Docker Compose
 
