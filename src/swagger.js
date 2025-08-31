@@ -36,7 +36,7 @@ export function setupSwagger(app) {
         },
         SendEmailRequest: {
           type: 'object',
-          required: ['to', 'subject', 'html'],
+          required: ['to', 'html'],
           properties: {
             from: { type: 'string', format: 'email' },
             to: {

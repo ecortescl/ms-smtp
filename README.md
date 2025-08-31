@@ -140,6 +140,31 @@ volumes:
   pgdata:
 ```
 
+## Despliegue en producción (Docker + Nginx)
+
+Si expones el servicio detrás de un reverse proxy (Nginx/Traefik), asegúrate de reenviar correctamente `/api/`, `/health` y especialmente `/docs/` para que Swagger UI sirva sus assets con el MIME correcto.
+
+- Archivo de ejemplo: `deploy/nginx.conf.example`.
+- Puntos clave:
+  - Usa `location ^~ /docs/ { proxy_pass ... }` para que ninguna regla de SPA/`try_files` capture `/docs/*` y devuelva HTML.
+  - Proxy también para `/api/` y `/health`.
+  - Verifica cabeceras con:
+    ```bash
+    curl -I https://tu-dominio/docs/swagger-ui.css
+    ```
+    Debe responder con `Content-Type: text/css` y estado 200.
+  - Ajusta `server_name`, upstream/puerto y, si aplica, TLS.
+
+Variables relevantes:
+- `SWAGGER_PATH` (default `/docs`): si lo cambias, actualiza tu proxy.
+- `PORT`: puerto interno donde corre la app (mapea en Docker o proxy).
+
+Con Docker en VPS típico:
+```bash
+docker compose up -d
+# Nginx fuera del compose o en otro stack, apuntando a la app (p. ej., 127.0.0.1:3000)
+```
+
 ## Ejecutar
 - Desarrollo (con nodemon):
   ```bash

@@ -53,5 +53,15 @@ services:
       db:
         condition: service_healthy
 
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: ms-smtp-nginx
+    depends_on:
+      - ms_smtp
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx.compose.conf:/etc/nginx/nginx.conf:ro
+
 volumes:
   pgdata:
