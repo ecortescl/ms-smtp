@@ -14,21 +14,38 @@ const attachmentSchema = Joi.object({
 }).or('content', 'path');
 
 const schema = Joi.object({
-  from: Joi.string().email().optional(),
-  to: Joi.alternatives().try(Joi.string().email(), Joi.array().items(Joi.string().email())).required(),
-  cc: Joi.alternatives().try(Joi.string().email(), Joi.array().items(Joi.string().email())).optional(),
-  bcc: Joi.alternatives().try(Joi.string().email(), Joi.array().items(Joi.string().email())).optional(),
-  subject: Joi.string().required(),
-  html: Joi.string().required(),
-  text: Joi.string().optional(),
-  replyTo: Joi.string().email().optional(),
+  from: Joi.string().email().optional().empty(''),
+  to: Joi.alternatives()
+    .try(Joi.string().email(), Joi.array().items(Joi.string().email()))
+    .required()
+    .empty(''),
+  cc: Joi.alternatives()
+    .try(Joi.string().email(), Joi.array().items(Joi.string().email()))
+    .optional()
+    .empty(''),
+  bcc: Joi.alternatives()
+    .try(Joi.string().email(), Joi.array().items(Joi.string().email()))
+    .optional()
+    .empty(''),
+  subject: Joi.string().optional().empty(''),
+  html: Joi.string().required().empty(''),
+  text: Joi.string().optional().empty(''),
+  replyTo: Joi.string().email().optional().empty(''),
   attachments: Joi.array().items(attachmentSchema).optional(),
 });
 
 router.post('/send-email', async (req, res) => {
-  const { error, value } = schema.validate(req.body, { abortEarly: false });
+  const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
   if (error) {
     return res.status(400).json({ error: 'ValidationError', details: error.details.map(d => d.message) });
+  }
+
+  // Asegurar que exista al menos un destinatario (to/cc/bcc) para evitar error de Nodemailer
+  const hasTo = Boolean(value.to && ((Array.isArray(value.to) && value.to.length) || (!Array.isArray(value.to))));
+  const hasCc = Boolean(value.cc && ((Array.isArray(value.cc) && value.cc.length) || (!Array.isArray(value.cc))));
+  const hasBcc = Boolean(value.bcc && ((Array.isArray(value.bcc) && value.bcc.length) || (!Array.isArray(value.bcc))));
+  if (!hasTo && !hasCc && !hasBcc) {
+    return res.status(400).json({ error: 'ValidationError', details: ['At least one recipient is required in to, cc, or bcc'] });
   }
 
   try {

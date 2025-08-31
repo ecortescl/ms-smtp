@@ -185,6 +185,13 @@ Body (JSON):
 }
 ```
 
+### Validación del payload
+
+- Requeridos: `to`, `html`.
+- Opcionales: `from`, `cc`, `bcc`, `subject`, `text`, `replyTo`, `attachments`.
+- Remitente efectivo: si no envías `from`, configura `SMTP_FROM_DEFAULT` en el entorno.
+- SMTP: debe existir `SMTP_HOST` (y credenciales si tu servidor lo requiere).
+
 Respuesta 202:
 ```json
 {
@@ -259,7 +266,32 @@ curl -X POST http://localhost:3000/api/v1/send-email \
 - En producción, usa `SMTP_TLS_REJECT_UNAUTH=true`.
 - Configura correctamente CORS si expones el servicio a terceros.
 
----
+## Entregabilidad / evitar spam
+
+Para mejorar la entregabilidad y reducir la probabilidad de spam:
+
+- __SPF__: Publica un registro SPF que incluya a tu proveedor SMTP.
+  - Ejemplo: `v=spf1 include:sendgrid.net include:mailgun.org -all`.
+- __DKIM__: Habilita DKIM en tu proveedor y publica las claves en DNS. Alinea el dominio del `From` con la firma DKIM.
+- __DMARC__: Configura DMARC para alinear SPF/DKIM.
+  - Inicio: `v=DMARC1; p=none; rua=mailto:dmarc@tu-dominio.com; fo=1`.
+  - Escala a `quarantine`/`reject` cuando esté estable.
+- __Remitente consistente__: Usa `from` del mismo dominio que has verificado con SPF/DKIM/DMARC. En el entorno, ajusta `SMTP_FROM_DEFAULT="Nombre <no-reply@tu-dominio.com>"`.
+- __TLS__: Usa STARTTLS/TLS válido. Si auto-hospedas, certifica el hostname.
+- __List-Unsubscribe__: Añade encabezados para bajas con un clic si haces envíos recurrentes.
+  - `List-Unsubscribe: <mailto:unsubscribe@tu-dominio.com>, <https://tu-dominio.com/unsubscribe?u=...>`
+  - `List-Unsubscribe-Post: List-Unsubscribe=One-Click`
+- __Contenido__: Incluye versión `text` además de `html`, evita solo-imagen, cuida palabras típicas de spam y exceso de mayúsculas.
+- __Enlaces__: Evita acortadores, usa HTTPS y dominios de confianza.
+- __Adjuntos__: Evita ejecutables y limita tamaño.
+- __Listas limpias__: Doble opt‑in, depura rebotes e inactivos, calienta IP/domino gradualmente.
+- __Monitoreo__: Google Postmaster Tools, Microsoft SNDS, métricas de rebote/queja.
+
+Pasos prácticos inmediatos:
+- Define `SMTP_FROM_DEFAULT` con tu dominio verificado.
+- Verifica SPF/DKIM/DMARC en tu DNS.
+- Añade `text` además de `html` cuando sea posible.
+- Revisa que los enlaces del HTML usen tu dominio o uno con buena reputación.
 
 ## Características
 - Envío de correos vía SMTP con autenticación por token (`x-api-token`).
