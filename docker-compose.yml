@@ -48,7 +48,7 @@ services:
       PG_DATABASE: ${PG_DATABASE:-ms_smtp}
       PG_SSL: ${PG_SSL:-false}
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:${PORT:-3000}"
     depends_on:
       db:
         condition: service_healthy
