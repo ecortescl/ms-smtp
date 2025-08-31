@@ -22,16 +22,23 @@ const SOCKET_PATH = process.env.SOCKET_PATH; // e.g., /app/run/ms-smtp.sock
 // Trust first proxy (e.g., Nginx, Cloudflare)
 app.set('trust proxy', 1);
 
-// Basic security and utils
+// Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
 app.use(helmet({
-  contentSecurityPolicy: false, // Desactiva CSP temporalmente para Swagger UI
-  crossOriginEmbedderPolicy: false
+  contentSecurityPolicy: false, // Desactivado temporalmente para Swagger UI
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: false,
+  crossOriginResourcePolicy: false
 }));
-app.use(cors());
-app.use(express.json({ limit: '1mb' }));
 
-// Serve static files from node_modules/swagger-ui-dist
-app.use('/swagger-ui', express.static('node_modules/swagger-ui-dist'));
+// Configuración de CORS permisiva para desarrollo
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-token'],
+  credentials: true
+}));
+
+app.use(express.json({ limit: '1mb' }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
