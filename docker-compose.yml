@@ -24,8 +24,7 @@ services:
     restart: unless-stopped
     command: sh -c "npm ci && npm run start"
     environment:
-      PORT: ${PORT:-3003}
-      SOCKET_PATH: ${SOCKET_PATH:-/var/run/ms-smtp/ms-smtp.sock}
+      PORT: ${PORT:-3000}
       API_TOKEN: ${API_TOKEN}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
@@ -36,8 +35,6 @@ services:
       SMTP_POOL: ${SMTP_POOL:-true}
       SMTP_MAX_CONNECTIONS: ${SMTP_MAX_CONNECTIONS:-5}
       SMTP_MAX_MESSAGES: ${SMTP_MAX_MESSAGES:-100}
-      SMTP_TLS_REJECT_UNAUTH: ${SMTP_TLS_REJECT_UNAUTH:-true}
-      LOG_DIR: ${LOG_DIR:-./data/logs}
       LOG_FILE_NAME: ${LOG_FILE_NAME:-email.log}
       TEMPLATES_DIR: ${TEMPLATES_DIR:-./data/templates}
       SWAGGER_PATH: ${SWAGGER_PATH:-/docs}
@@ -48,22 +45,13 @@ services:
       PG_PASSWORD: ${PG_PASSWORD:-ms}
       PG_DATABASE: ${PG_DATABASE:-ms_smtp}
       PG_SSL: ${PG_SSL:-false}
-    # Sin exposición de puertos: usaremos Unix socket para evitar conflictos
     volumes:
       - ./:/app
-      - /var/run/ms-smtp:/var/run/ms-smtp
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
     depends_on:
       db:
         condition: service_healthy
 
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: ms-smtp-nginx
-    depends_on:
-      - ms_smtp
-    volumes:
-      - ./deploy/nginx.compose.conf:/etc/nginx/nginx.conf:ro
-
 volumes:
   pgdata:
-
