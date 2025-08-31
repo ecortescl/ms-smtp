@@ -178,8 +178,20 @@ docker compose up -d
   - La app se iniciará en el primer puerto disponible comenzando en `PORT` (por defecto 3000). Revisa la consola para ver el puerto final.
 
 ## Documentación Swagger
-- Abre `http://localhost:<PUERTO>/docs` (ver consola para el puerto en uso).
-- Agrega el header de seguridad `x-api-token` con el valor de `API_TOKEN` para probar los endpoints.
+- **URL**: `http://localhost:<PUERTO>/docs` (ver consola para el puerto en uso)
+- **Autenticación**: Usa el botón "Authorize" e ingresa tu `API_TOKEN`
+- **Características**:
+  - Documentación completa de todos los 11 endpoints
+  - Esquemas detallados con validaciones y ejemplos
+  - Interfaz interactiva para probar la API en vivo
+  - Ejemplos múltiples (básico y avanzado) para cada endpoint
+  - Códigos de error documentados con ejemplos
+  - Especificación OpenAPI 3.0.3 completa
+
+### Documentación Adicional
+- **Ejemplos de uso**: Ver `examples/api-examples.md`
+- **Configuración de Swagger**: Ver `docs/swagger-setup.md`
+- **Especificación OpenAPI**: `http://localhost:<PUERTO>/openapi.json`
 
 ## Endpoint
 

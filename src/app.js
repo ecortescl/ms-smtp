@@ -11,7 +11,7 @@ import emailRouter from './routes/email.js';
 import logsRouter from './routes/logs.js';
 import templatesRouter from './routes/templates.js';
 import { initDb, pgEnabled } from './services/db.js';
-import { setupSwagger } from './swagger.js';  // Mover al final para asegurar que todas las dependencias estén cargadas
+import { setupSwagger } from './swagger-new.js';  // Nueva implementación de Swagger
 
 dotenv.config();
 
@@ -29,9 +29,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-token'],
   credentials: true
 }));
-
-// Configura Swagger antes de otros middlewares para evitar conflictos
-setupSwagger(app);
 
 // Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
 app.use(helmet({
@@ -60,7 +57,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Swagger (public, documents auth requirement)
+// Swagger UI (public, documents auth requirement)
 setupSwagger(app);
 
 // Protect API routes with token auth
