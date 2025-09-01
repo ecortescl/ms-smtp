@@ -11,7 +11,8 @@ import emailRouter from './routes/email.js';
 import logsRouter from './routes/logs.js';
 import templatesRouter from './routes/templates.js';
 import { initDb, pgEnabled } from './services/db.js';
-import { setupSwagger } from './swagger-new.js';  // Nueva implementación de Swagger
+import { specs, swaggerUi } from './swagger-config.js';
+
 
 dotenv.config();
 
@@ -30,9 +31,9 @@ app.use(cors({
   credentials: true
 }));
 
-// Configuración de seguridad con Helmet (desactivando temporalmente CSP para Swagger)
+// Configuración de seguridad con Helmet
 app.use(helmet({
-  contentSecurityPolicy: false, // Desactivado temporalmente para Swagger UI
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: false
@@ -52,13 +53,35 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Check if the service is running and get uptime information
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ *             example:
+ *               status: "ok"
+ *               uptime: 3600.5
+ */
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Swagger UI (public, documents auth requirement)
-setupSwagger(app);
+// Swagger API documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'ms-smtp API Documentation'
+}));
 
 // Protect API routes with token auth
 app.use('/api', authMiddleware);
@@ -69,7 +92,7 @@ app.use('/api/v1', logsRouter);
 app.use('/api/v1', templatesRouter);
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
 

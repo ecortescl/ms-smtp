@@ -1,7 +1,7 @@
 {
   "name": "ms-smtp",
   "version": "1.0.0",
-  "description": "Microservicio SMTP para enviar correos via API (Node + Express + Nodemailer + Swagger)",
+  "description": "Microservicio SMTP para enviar correos via API (Node + Express + Nodemailer)",
   "main": "src/app.js",
   "type": "module",
   "scripts": {

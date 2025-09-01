@@ -8,7 +8,7 @@ A Node.js microservice for sending emails via SMTP with API authentication and t
 - Email sending via SMTP with token-based authentication (`x-api-token`)
 - Template system with Handlebars for dynamic email content
 - Email event logging with query capabilities (success/failed/canceled/spam)
-- Interactive API documentation with Swagger UI at `/docs`
+- RESTful API with comprehensive endpoint coverage
 - Dual storage backends: filesystem (default) or PostgreSQL
 - SMTP connectivity verification endpoint
 - Health check endpoint for monitoring

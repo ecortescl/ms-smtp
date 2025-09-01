@@ -3,9 +3,9 @@
 ![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express.js-4.x-black?logo=express)
 ![License](https://img.shields.io/badge/License-MIT-blue)
-![Swagger](https://img.shields.io/badge/Docs-Swagger_UI-85EA2D?logo=swagger&logoColor=black)
+![API](https://img.shields.io/badge/API-REST-blue)
 
-Microservicio para enviar correos vía API usando SMTP. Incluye autenticación por token (header `x-api-token`) y documentación interactiva con Swagger en `/docs`.
+Microservicio para enviar correos vía API usando SMTP. Incluye autenticación por token (header `x-api-token`) y sistema completo de plantillas.
 
 ## Visión general (Arquitectura)
 
@@ -177,21 +177,10 @@ docker compose up -d
   - La app escuchará en `http://localhost:3000` (o el puerto configurado).
   - La app se iniciará en el primer puerto disponible comenzando en `PORT` (por defecto 3000). Revisa la consola para ver el puerto final.
 
-## Documentación Swagger
-- **URL**: `http://localhost:<PUERTO>/docs` (ver consola para el puerto en uso)
-- **Autenticación**: Usa el botón "Authorize" e ingresa tu `API_TOKEN`
-- **Características**:
-  - Documentación completa de todos los 11 endpoints
-  - Esquemas detallados con validaciones y ejemplos
-  - Interfaz interactiva para probar la API en vivo
-  - Ejemplos múltiples (básico y avanzado) para cada endpoint
-  - Códigos de error documentados con ejemplos
-  - Especificación OpenAPI 3.0.3 completa
-
-### Documentación Adicional
+## Documentación de la API
 - **Ejemplos de uso**: Ver `examples/api-examples.md`
-- **Configuración de Swagger**: Ver `docs/swagger-setup.md`
-- **Especificación OpenAPI**: `http://localhost:<PUERTO>/openapi.json`
+- **Endpoints disponibles**: Ver sección "Endpoint" más abajo
+- **Autenticación**: Usar header `x-api-token` con el valor de `API_TOKEN`
 
 ## Endpoint
 

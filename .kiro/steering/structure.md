@@ -13,7 +13,6 @@
 ```
 src/
 ├── app.js                 # Main application entry point
-├── swagger-new.js         # Swagger/OpenAPI documentation setup
 ├── middleware/
 │   └── auth.js           # Token authentication middleware
 ├── routes/               # API route handlers
@@ -63,7 +62,6 @@ data/
 ### API Structure
 ```
 /health                    # Health check (public)
-/docs                     # Swagger UI (public)
 /api/v1/send-email        # Send individual email
 /api/v1/send-template     # Send templated email
 /api/v1/smtp-check        # SMTP connectivity test

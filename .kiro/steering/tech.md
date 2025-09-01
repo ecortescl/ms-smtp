@@ -13,7 +13,7 @@
 - **express-rate-limit**: API rate limiting
 - **morgan**: HTTP request logging
 - **pg**: PostgreSQL client
-- **swagger-jsdoc & swagger-ui-express**: API documentation
+- **joi**: Schema validation for API requests
 
 ## Development Tools
 - **nodemon**: Development server with auto-reload
@@ -71,5 +71,4 @@ cp .env.example .env
 - RESTful endpoints under `/api/v1/`
 - Token authentication via `x-api-token` header
 - JSON request/response format
-- Swagger documentation at `/docs`
 - Health check at `/health`

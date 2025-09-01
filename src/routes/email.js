@@ -5,6 +5,54 @@ import { logEmailEvent } from '../services/logger.js';
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api/v1/send-email:
+ *   post:
+ *     summary: Send an email via SMTP
+ *     description: Send a single email with optional attachments using the configured SMTP server
+ *     tags: [Email]
+ *     security:
+ *       - ApiTokenAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/EmailRequest'
+ *           example:
+ *             from: "sender@example.com"
+ *             to: ["recipient@example.com"]
+ *             subject: "Test Email"
+ *             html: "<h1>Hello World</h1><p>This is a test email.</p>"
+ *             text: "Hello World\n\nThis is a test email."
+ *     responses:
+ *       202:
+ *         description: Email queued successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EmailResponse'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Invalid or missing API token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       502:
+ *         description: SMTP error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
 const attachmentSchema = Joi.object({
   filename: Joi.string().optional(),
   content: Joi.alternatives(Joi.string(), Joi.binary()).required(),
@@ -79,6 +127,38 @@ router.post('/send-email', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/v1/smtp-check:
+ *   get:
+ *     summary: Check SMTP server connectivity
+ *     description: Verify connection to the configured SMTP server
+ *     tags: [Email]
+ *     security:
+ *       - ApiTokenAuth: []
+ *     responses:
+ *       200:
+ *         description: SMTP connection successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SMTPCheckResponse'
+ *             example:
+ *               ok: true
+ *               verified: true
+ *               host: "smtp.gmail.com"
+ *               port: 587
+ *               secure: false
+ *       502:
+ *         description: SMTP connection failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SMTPCheckResponse'
+ *             example:
+ *               ok: false
+ *               error: "Connection timeout"
+ */
 router.get('/smtp-check', async (_req, res) => {
   try {
     const transporter = getTransporter();
